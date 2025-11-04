@@ -68,5 +68,10 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+<<<<<<< HEAD
 # FlavorMatch
 An interactive website that pairs food with music that represents it. Users can explore recipes from around the world and get a spotify playlist or song that matches the vibe, origin, or mood of that specific dish. This web app blends together food and music to create a unique experience. 
+=======
+
+testing push
+>>>>>>> a78b434 (testing)
