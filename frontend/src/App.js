@@ -18,7 +18,12 @@ function App() {
       setMessage("Failed to fetch song");
     }
   };
-  
+
+  const getTrackEmbedUrl = (url) => {
+    const trackId = url.split("/track/")[1];
+    return `https://open.spotify.com/embed/track/${trackId}`;
+  }
+
   return (
     <div className="App">
       <header className="App-header">
