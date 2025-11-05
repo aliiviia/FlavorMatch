@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import fetch from "node-fetch";        // for API calls
-import cuisineGenreMap from "./cuisineGenreMap.js"; // we’ll create this small file
+import fetch from "node-fetch";
+import cuisineGenreMap from "./cuisineGenreMap.js";
+import { MOCK_RECIPES } from "./mockRecipes.js";
 
 dotenv.config();
 
@@ -10,49 +11,75 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("FlavorMatch backend is running!");
-});
+app.get("/", (req, res) => res.send("FlavorMatch backend is running!"));
+app.get("/api/hello", (req, res) =>
+  res.json({ message: "Hello from FlavorMatch backend!" })
+);
 
-app.get("/api/hello", (req, res) => {
-  res.json({ message: "Hello from FlavorMatch backend!" });
-});
+//  Flag to disable Spoonacular temporarily after repeated failures
+// If we use our API limited it wil just fall back to mock data 
+let spoonacularEnabled = true;
+let lastFailureTime = null;
+const SPOON_FAIL_TIMEOUT = 5 * 60 * 1000; // 5 minutes cooldown
 
-/**
- * getCuisine(recipeName)
- * --------------------------------------------
- * Given a recipe name (e.g. "carne asada"),
- * this function uses the Spoonacular API to determine the recipe's cuisine type.
- **/
+function disableSpoonacular() {
+  spoonacularEnabled = false;
+  lastFailureTime = Date.now();
+  console.warn(
+    "🚫 [FLAVORMATCH] Spoonacular temporarily disabled — using mock data only."
+  );
+}
 
+function reenableSpoonacularIfTime() {
+  if (!spoonacularEnabled && Date.now() - lastFailureTime > SPOON_FAIL_TIMEOUT) {
+    spoonacularEnabled = true;
+    console.log("🔁 [FLAVORMATCH] Retrying Spoonacular after cooldown.");
+  }
+}
+
+// Get cuisine type (Spoonacular + fallback)
 async function getCuisine(recipeName) {
   const spoonacularKey = process.env.SPOONACULAR_KEY;
 
-  // first fetch the recipe ID
-  const searchRes = await fetch(
-    `https://api.spoonacular.com/recipes/complexSearch?query=${recipeName}&apiKey=${spoonacularKey}`
-  );
-  const searchData = await searchRes.json();
+  reenableSpoonacularIfTime();
 
-  // throw error if a recipe is not found
-  if (!searchData.results?.length) throw new Error("No recipes found.");
-  
-  const recipeId = searchData.results[0].id;
-  // get recipe information using api
-  const infoRes = await fetch(
-    `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${spoonacularKey}`
-  );
-  const infoData = await infoRes.json();
-  // default fallback cuisine is amercan if none found
-  return infoData.cuisines?.[0]?.toLowerCase() || "american";
+  if (!spoonacularEnabled) {
+    const match = MOCK_RECIPES.find((r) =>
+      r.title.toLowerCase().includes(recipeName.toLowerCase())
+    );
+    return match?.cuisine?.toLowerCase() || "pop";
+  }
+
+  try {
+    const searchRes = await fetch(
+      `https://api.spoonacular.com/recipes/complexSearch?query=${recipeName}&apiKey=${spoonacularKey}`
+    );
+    if (!searchRes.ok) throw new Error("Spoonacular API error");
+    const searchData = await searchRes.json();
+
+    if (!searchData.results?.length) throw new Error("No results");
+
+    const recipeId = searchData.results[0].id;
+    const infoRes = await fetch(
+      `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${spoonacularKey}`
+    );
+    const infoData = await infoRes.json();
+
+    return infoData.cuisines?.[0]?.toLowerCase() || "american";
+  } catch (err) {
+    console.warn(" Spoonacular unavailable in getCuisine:", err.message);
+    disableSpoonacular();
+    const match = MOCK_RECIPES.find((r) =>
+      r.title.toLowerCase().includes(recipeName.toLowerCase())
+    );
+    return match?.cuisine?.toLowerCase() || "pop";
+  }
 }
 
+//  Spotify client credentials flow
 let spotifyToken = null;
 let tokenExpires = 0;
-/**
- * Obtain an access token from Spotify using our app’s client credentials (Client ID and Secret).
- * This token allows the backend to call Spotify’s APIs securely.
- */
+
 async function getSpotifyToken() {
   if (spotifyToken && Date.now() < tokenExpires) return spotifyToken;
 
@@ -73,43 +100,49 @@ async function getSpotifyToken() {
   const data = await res.json();
   spotifyToken = data.access_token;
   tokenExpires = Date.now() + data.expires_in * 1000;
+
+  console.log(" New Spotify token retrieved");
   return spotifyToken;
 }
 
-/**
- * Gets up to 10 tracks from Spotify for a given genre.
- */
+//  Spotify search, look for tracks by genre
 async function getSpotifyTracks(genre, token) {
   const res = await fetch(
     `https://api.spotify.com/v1/search?q=${encodeURIComponent(
       genre
     )}&type=track&limit=10`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
+    { headers: { Authorization: `Bearer ${token}` } }
   );
 
   const data = await res.json();
+  console.log(
+    `🎵 Spotify search for "${genre}" → ${data.tracks?.items?.length || 0} tracks`
+  );
   return data.tracks?.items || [];
 }
-/** This endpoint connects the entire flow of getting a song for a recipe */
+
+// 🎶 Main Song Endpoint
 app.get("/api/songForRecipe", async (req, res) => {
   try {
     const recipe = req.query.recipe;
-    if (!recipe) {
+    if (!recipe)
       return res.status(400).json({ error: "Please provide a recipe name." });
-    }
 
     const cuisine = await getCuisine(recipe);
     const genre = cuisineGenreMap[cuisine] || "pop";
+    console.log(` Recipe: ${recipe} | Cuisine: ${cuisine} | Genre: ${genre}`);
+
     const token = await getSpotifyToken();
-    const tracks = await getSpotifyTracks(genre, token);
+    let tracks = await getSpotifyTracks(genre, token);
+
+    if (!tracks.length) {
+      console.log(` No tracks for "${genre}". Retrying with "chill".`);
+      tracks = await getSpotifyTracks("chill", token);
+    }
 
     if (!tracks.length)
-      return res
-        .status(404)
-        .json({ error: "No tracks found for this genre." });
-    // randomly picks a song from the top 10 tracks
+      return res.status(404).json({ error: "No tracks found for this genre." });
+
     const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
 
     res.json({
@@ -128,78 +161,115 @@ app.get("/api/songForRecipe", async (req, res) => {
       })),
     });
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Error in /api/songForRecipe:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-/** This route gets back recipe details */
+// Recipe Info Endpoint (Spoonacular + fallback)
 app.get("/api/recipeInfo", async (req, res) => {
+  const { id } = req.query;
+  const spoonacularKey = process.env.SPOONACULAR_KEY;
+
+  reenableSpoonacularIfTime();
+
+  if (!spoonacularEnabled) {
+    const mock = MOCK_RECIPES.find((r) => String(r.id) === String(id));
+    return mock
+      ? res.json(mock)
+      : res.status(404).json({ error: "Recipe not found in fallback data" });
+  }
+
   try {
-    const recipeName = req.query.recipe;
-    const spoonacularKey = process.env.SPOONACULAR_KEY;
-
-    if (!recipeName) {
-      return res.status(400).json({ error: "Please provide a recipe name." });
-    }
-
-    // Step 1: Search recipe to get its ID
-    const searchRes = await fetch(
-      `https://api.spoonacular.com/recipes/complexSearch?query=${recipeName}&number=1&apiKey=${spoonacularKey}`
+    const apiRes = await fetch(
+      `https://api.spoonacular.com/recipes/${id}/information?includeNutrition=false&apiKey=${spoonacularKey}`
     );
-    const searchData = await searchRes.json();
-    if (!searchData.results?.length) {
-      throw new Error("No recipes found.");
-    }
 
-    const recipeId = searchData.results[0].id;
+    if (!apiRes.ok) throw new Error("Spoonacular failed");
+    const recipe = await apiRes.json();
 
-    // Step 2: Fetch recipe details
-    const infoRes = await fetch(
-      `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${spoonacularKey}`
-    );
-    const infoData = await infoRes.json();
-
-    // Step 3: Return selected details
     res.json({
-      id: infoData.id,
-      title: infoData.title,
-      image: infoData.image,
-      summary: infoData.summary,
-      ingredients: infoData.extendedIngredients?.map(i => i.original),
-      instructions: infoData.instructions || "No instructions provided.",
-      sourceUrl: infoData.sourceUrl
+      id: recipe.id,
+      title: recipe.title,
+      image: recipe.image,
+      summary: recipe.summary,
+      extendedIngredients: recipe.extendedIngredients.map((i) => i.original),
+      instructions: recipe.instructions,
     });
   } catch (err) {
-    console.error("Error fetching recipe info:", err);
-    res.status(500).json({ error: err.message });
+    console.warn("Spoonacular failed in recipeInfo:", err.message);
+    disableSpoonacular();
+    const mock = MOCK_RECIPES.find((r) => String(r.id) === String(id));
+    mock
+      ? res.json(mock)
+      : res.status(404).json({ error: "Recipe not found in fallback data" });
   }
 });
 
-/** This route gets multiple recipes based on a search query */
+//  Recipes List Endpoint if spoonacular API is not available fallback to mock data
 app.get("/api/recipes", async (req, res) => {
-  try {
-    const query = req.query.query;
-    const spoonacularKey = process.env.SPOONACULAR_KEY;
+  const query = req.query.query?.toLowerCase();
+  const spoonacularKey = process.env.SPOONACULAR_KEY;
 
-    if (!query) return res.status(400).json({ error: "Missing search query." });
+  reenableSpoonacularIfTime();
 
-    // 🔹 Get multiple recipes (e.g. 6 results)
-    const searchRes = await fetch(
-      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=6&apiKey=${spoonacularKey}`
+  if (!spoonacularEnabled) {
+    const filtered = MOCK_RECIPES.filter((r) =>
+      r.title.toLowerCase().includes(query)
     );
-    const data = await searchRes.json();
+    return res.json(filtered.length ? filtered : MOCK_RECIPES.slice(0, 5));
+  }
 
-    if (!data.results?.length)
-      return res.status(404).json({ error: "No recipes found." });
+  try {
+    const apiRes = await fetch(
+      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=5&apiKey=${spoonacularKey}`
+    );
 
-    res.json(data.results); // send back array of recipes
+    if (!apiRes.ok) throw new Error("Spoonacular failed");
+    const data = await apiRes.json();
+
+    const recipes = data.results.map((r) => ({
+      id: r.id,
+      title: r.title,
+      image: r.image,
+    }));
+
+    res.json(recipes);
   } catch (err) {
-    console.error("Error fetching recipes:", err);
-    res.status(500).json({ error: err.message });
+    console.warn("⚠️ Spoonacular failed in /api/recipes:", err.message);
+    disableSpoonacular();
+    const filtered = MOCK_RECIPES.filter((r) =>
+      r.title.toLowerCase().includes(query)
+    );
+    res.json(filtered.length ? filtered : MOCK_RECIPES.slice(0, 5));
   }
 });
 
-// ---- SERVER ----
+// Playlist Endpoint temporary will be changing when OAuth is integrated(always public)
+app.get("/api/playlist", async (req, res) => {
+  const recipeName = req.query.recipe;
+  try {
+    const playlists = {
+      italian: "https://open.spotify.com/playlist/37i9dQZF1DX6bBjHfdRnza",
+      mexican: "https://open.spotify.com/playlist/37i9dQZF1DWYzpSJHStHHx",
+      japanese: "https://open.spotify.com/playlist/37i9dQZF1DX4jP4eebSWR9",
+      indian: "https://open.spotify.com/playlist/37i9dQZF1DX7R1MnT8pC9x",
+      american: "https://open.spotify.com/playlist/37i9dQZF1DWXLeA8Omikj7",
+      french: "https://open.spotify.com/playlist/37i9dQZF1DWZLxB4E8pGQK",
+    };
+
+    const cuisine =
+      Object.keys(playlists).find((key) =>
+        recipeName.toLowerCase().includes(key)
+      ) || "american";
+
+    res.json({ playlistUrl: playlists[cuisine] });
+  } catch (err) {
+    console.error("Error creating playlist:", err);
+    res.status(500).json({ error: "Failed to create playlist" });
+  }
+});
+
+// Start server
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
