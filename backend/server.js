@@ -76,6 +76,22 @@ async function getSpotifyToken() {
   return spotifyToken;
 }
 
+/**
+ * Gets up to 10 tracks from Spotify for a given genre.
+ */
+async function getSpotifyTracks(genre, token) {
+  const res = await fetch(
+    `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+      genre
+    )}&type=track&limit=10`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+
+  const data = await res.json();
+  return data.tracks?.items || [];
+}
 
 
 
