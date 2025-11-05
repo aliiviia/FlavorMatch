@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import fetch from "node-fetch";        // for API calls
+import cuisineGenreMap from "./cuisineGenreMap.js"; // we’ll create this small file
+
 dotenv.config();
 
 const app = express();
@@ -11,70 +14,40 @@ app.get("/", (req, res) => {
   res.send("FlavorMatch backend is running!");
 });
 
-//Testing endpoint
 app.get("/api/hello", (req, res) => {
   res.json({ message: "Hello from FlavorMatch backend!" });
 });
 
-app.get("/api/pair/:cuisine", async (req, res) => {
-  const { cuisine } = req.params;
+/**
+ * getCuisine(recipeName)
+ * --------------------------------------------
+ * Given a recipe name (e.g. "carne asada"),
+ * this function uses the Spoonacular API to determine the recipe's cuisine type.
+ **/
 
+async function getCuisine(recipeName) {
+  const spoonacularKey = process.env.SPOONACULAR_KEY;
+
+  // first fetch the recipe ID
+  const searchRes = await fetch(
+    `https://api.spoonacular.com/recipes/complexSearch?query=${recipeName}&apiKey=${spoonacularKey}`
+  );
+  const searchData = await searchRes.json();
+
+  // throw error if a recipe is not found
+  if (!searchData.results?.length) throw new Error("No recipes found.");
   
-  const cuisineToGenre = {
-  italian: "classical",
-  mexican: "latin",
-  japanese: "j-pop",
-  indian: "indian",
-  american: "country",
-  french: "jazz",
-  chinese: "chill",
-  thai: "party",
-  korean: "k-pop",
-  greek: "world-music",
-  brazilian: "samba",
-  spanish: "spanish",
-  mediterranean: "romance",
-  caribbean: "reggae",
-  vietnamese: "study",
-  german: "german",
-  british: "rock",
-  turkish: "turkish",
-  moroccan: "world-music",
-  lebanese: "soul",
-  ethiopian: "afrobeat",
-  nigerian: "afrobeat",
-  filipino: "philippines-opm",
-  indonesian: "world-music",
-  hawaiian: "summer",
-  russian: "pop",
-  canadian: "folk",
-  irish: "songwriter",
-  cuban: "salsa",
-  argentinian: "tango",
-  brazil: "bossanova",
-  australian: "indie",
-  swedish: "swedish",
-  middleeastern: "world-music",
-  african: "afrobeat"
-};
-
-  const genre = cuisineToGenre[cuisine.toLowerCase()] || "pop";
-
-  try {
-    // Calling the spotify Recommendations API
-    const response = await fetch(`https://api.spotify.com/v1/recommendations?seed_genres=${genre}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.SPOTIFY_ACCESS_TOKEN}` // When OAuth is implemented, replace with a valid token
-      }
-    });
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch recommendations" });
-  }
-});
+  const recipeId = searchData.results[0].id;
+  // get recipe information using api
+  const infoRes = await fetch(
+    `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${spoonacularKey}`
+  );
+  const infoData = await infoRes.json();
+  // default fallback cuisine is amercan if none found
+  return infoData.cuisines?.[0]?.toLowerCase() || "american";
+}
 
 
+// ---- SERVER ----
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
