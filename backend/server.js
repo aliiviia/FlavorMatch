@@ -109,9 +109,9 @@ app.get("/api/songForRecipe", async (req, res) => {
       return res
         .status(404)
         .json({ error: "No tracks found for this genre." });
-
+    // randomly picks a song from the top 10 tracks
     const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-    
+
     res.json({
       recipe,
       cuisine,

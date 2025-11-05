@@ -5,9 +5,11 @@ function App() {
   const [message, setMessage] = useState("Loading backend...");
   const [recipe, setRecipe] = useState("");
   const [data, setData] = useState(null);
+  const [showPlaylist, setShowPlaylist] = useState(false);
 
   const handleSearch = async () => {
     setMessage("Fetching song...");
+    setShowPlaylist(false);
     try {
       const res = await fetch(`http://localhost:5001/api/songForRecipe?recipe=${encodeURIComponent(recipe)}`);
       const json = await res.json();
@@ -65,6 +67,36 @@ function App() {
                 boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
               }}
             ></iframe>
+            
+            {/* Button to toggle a playlist view */}
+            <div style={{ marginTop: "20px" }}>
+              <button onClick={() => setShowPlaylist(!showPlaylist)}>
+                {showPlaylist ? "Hide Playlist" : "Generate Playlist"}
+              </button>
+            </div>
+
+            {/* Display the playlist if toggled */}
+            {showPlaylist && (
+              <div style={{ marginTop: "20px" }}>
+                <h3>Your FlavorMatch Playlist</h3>
+                {data.playlist.map((track, index) => (
+                  <div key={index} style={{ marginBottom: "15px" }}>
+                    <iframe
+                      src={getTrackEmbedUrl(track.url)}
+                      width="300"
+                      height="80"
+                      frameBorder="0"
+                      allow="encrypted-media"
+                      title={`track-${index}`}
+                      style={{
+                        borderRadius: "12px",
+                        boxShadow: "0 1px 6px rgba(0,0,0,0.15)",
+                      }}
+                    ></iframe>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
