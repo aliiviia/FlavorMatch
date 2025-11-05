@@ -1,25 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 
 function App() {
-  const [message, setMessage] = useState("Loading...");
-
-  useEffect(() => {
-    // Fetch from your backend API
-    fetch("http://localhost:5001/api/hello")
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => {
-        console.error("Error fetching data:", err);
-        setMessage("Failed to connect to backend");
-      });
-  }, []);
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>FlavorMatch</h1>
         <p>{message}</p>
+
+        <input
+          type="text"
+          value={recipe}
+          onChange={(e) => setRecipe(e.target.value)}
+          placeholder="Enter a recipe name..."
+        />
+        <button onClick={handleSearch}>Find Song</button>
+
+        {data && !data.error && (
+          <div style={{ marginTop: "20px", textAlign: "left" }}>
+            <p><strong>Cuisine:</strong> {data.cuisine}</p>
+            <p><strong>Genre:</strong> {data.genre}</p>
+            <p><strong>Random Song:</strong> {data.randomTrack.name} – {data.randomTrack.artists.join(", ")}</p>
+            <a href={data.randomTrack.url} target="_blank" rel="noreferrer">Open in Spotify</a>
+          </div>
+        )}
+
+        {data && data.error && <p style={{ color: "red" }}>{data.error}</p>}
       </header>
     </div>
   );
