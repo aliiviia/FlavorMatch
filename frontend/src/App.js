@@ -39,18 +39,42 @@ function App() {
         <button onClick={handleSearch}>Find Song</button>
 
         {data && !data.error && (
-          <div style={{ marginTop: "20px", textAlign: "left" }}>
-            <p><strong>Cuisine:</strong> {data.cuisine}</p>
-            <p><strong>Genre:</strong> {data.genre}</p>
-            <p><strong>Random Song:</strong> {data.randomTrack.name} – {data.randomTrack.artists.join(", ")}</p>
-            <a href={data.randomTrack.url} target="_blank" rel="noreferrer">Open in Spotify</a>
+          <div style={{ marginTop: "20px", textAlign: "center" }}>
+            <p>
+              <strong>Cuisine:</strong> {data.cuisine}
+            </p>
+            <p>
+              <strong>Genre:</strong> {data.genre}
+            </p>
+            <p>
+              <strong>Random Song:</strong>{" "}
+              {data.randomTrack.name} – {data.randomTrack.artists.join(", ")}
+            </p>
+
+            {/* Embed the chosen song onto the website */}
+            <iframe
+              src={getTrackEmbedUrl(data.randomTrack.url)}
+              width="300"
+              height="80"
+              frameBorder="0"
+              allow="encrypted-media"
+              title="Spotify Player"
+              style={{
+                marginTop: "10px",
+                borderRadius: "12px",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+              }}
+            ></iframe>
           </div>
         )}
 
-        {data && data.error && <p style={{ color: "red" }}>{data.error}</p>}
+        {data && data.error && (
+          <p style={{ color: "red" }}>{data.error}</p>
+        )}
       </header>
     </div>
   );
 }
+
 
 export default App;
