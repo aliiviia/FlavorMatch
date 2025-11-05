@@ -92,6 +92,46 @@ async function getSpotifyTracks(genre, token) {
   const data = await res.json();
   return data.tracks?.items || [];
 }
+/** This endpoint connects the entire flow of getting a song for a recipe */
+app.get("/api/songForRecipe", async (req, res) => {
+  try {
+    const recipe = req.query.recipe;
+    if (!recipe) {
+      return res.status(400).json({ error: "Please provide a recipe name." });
+    }
+
+    const cuisine = await getCuisine(recipe);
+    const genre = cuisineGenreMap[cuisine] || "pop";
+    const token = await getSpotifyToken();
+    const tracks = await getSpotifyTracks(genre, token);
+
+    if (!tracks.length)
+      return res
+        .status(404)
+        .json({ error: "No tracks found for this genre." });
+
+    const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+    
+    res.json({
+      recipe,
+      cuisine,
+      genre,
+      randomTrack: {
+        name: randomTrack.name,
+        artists: randomTrack.artists.map((a) => a.name),
+        url: randomTrack.external_urls.spotify,
+      },
+      playlist: tracks.map((t) => ({
+        name: t.name,
+        artists: t.artists.map((a) => a.name),
+        url: t.external_urls.spotify,
+      })),
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 
 
