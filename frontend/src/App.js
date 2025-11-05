@@ -2,7 +2,23 @@ import { useState } from "react";
 import "./App.css";
 
 function App() {
+  const [message, setMessage] = useState("Loading backend...");
+  const [recipe, setRecipe] = useState("");
+  const [data, setData] = useState(null);
 
+  const handleSearch = async () => {
+    setMessage("Fetching song...");
+    try {
+      const res = await fetch(`http://localhost:5001/api/songForRecipe?recipe=${encodeURIComponent(recipe)}`);
+      const json = await res.json();
+      setData(json);
+      setMessage("Success!");
+    } catch (err) {
+      console.error("Error:", err);
+      setMessage("Failed to fetch song");
+    }
+  };
+  
   return (
     <div className="App">
       <header className="App-header">
