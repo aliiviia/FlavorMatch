@@ -6,11 +6,16 @@ function App() {
   const [recipe, setRecipe] = useState("");
   const [data, setData] = useState(null);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [recipeInfo, setRecipeInfo] = useState(null);
 
   const handleSearch = async () => {
     setMessage("Fetching song...");
     setShowPlaylist(false);
+
     try {
+      // fetch recipe info
+      await fetchRecipeInfo(recipe);
+      // fetch spotify song for recipes
       const res = await fetch(`http://localhost:5001/api/songForRecipe?recipe=${encodeURIComponent(recipe)}`);
       const json = await res.json();
       setData(json);
@@ -25,6 +30,17 @@ function App() {
     const trackId = url.split("/track/")[1];
     return `https://open.spotify.com/embed/track/${trackId}`;
   }
+
+const fetchRecipeInfo = async (recipe) => {
+  try {
+    const res = await fetch(`http://localhost:5001/api/recipeInfo?recipe=${encodeURIComponent(recipe)}`);
+    const data = await res.json();
+    setRecipeInfo(data);
+  } catch (err) {
+    console.error("Error fetching recipe info:", err);
+  }
+};
+
 
   return (
     <div className="App">
@@ -99,6 +115,53 @@ function App() {
             )}
           </div>
         )}
+
+        {/* 🍽️ Recipe Info Section */}
+        {recipeInfo && (
+          <div
+            style={{
+              marginTop: "30px",
+              textAlign: "left",
+              maxWidth: "600px",
+              margin: "40px auto",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              padding: "20px",
+              borderRadius: "12px",
+            }}
+          >
+            <h2>{recipeInfo.title}</h2>
+            <img
+              src={recipeInfo.image}
+              alt={recipeInfo.title}
+              style={{
+                width: "100%",
+                borderRadius: "12px",
+                marginTop: "10px",
+              }}
+            />
+            <div
+              dangerouslySetInnerHTML={{ __html: recipeInfo.summary }}
+              style={{ marginTop: "15px", color: "#ccc" }}
+            />
+            <h3 style={{ marginTop: "15px" }}>Ingredients:</h3>
+            <ul>
+              {recipeInfo.ingredients?.map((ing, i) => (
+                <li key={i}>{ing}</li>
+              ))}
+            </ul>
+            <h3 style={{ marginTop: "15px" }}>Instructions:</h3>
+            <p>{recipeInfo.instructions}</p>
+            <a
+              href={recipeInfo.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: "#1db954", textDecoration: "none" }}
+            >
+              View full recipe ↗
+            </a>
+          </div>
+        )}
+
 
         {data && data.error && (
           <p style={{ color: "red" }}>{data.error}</p>
