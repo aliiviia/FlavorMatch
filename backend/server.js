@@ -133,7 +133,48 @@ app.get("/api/songForRecipe", async (req, res) => {
   }
 });
 
+/** This route gets back recipe details */
+app.get("/api/recipeInfo", async (req, res) => {
+  try {
+    const recipeName = req.query.recipe;
+    const spoonacularKey = process.env.SPOONACULAR_KEY;
 
+    if (!recipeName) {
+      return res.status(400).json({ error: "Please provide a recipe name." });
+    }
+
+    // Step 1: Search recipe to get its ID
+    const searchRes = await fetch(
+      `https://api.spoonacular.com/recipes/complexSearch?query=${recipeName}&number=1&apiKey=${spoonacularKey}`
+    );
+    const searchData = await searchRes.json();
+    if (!searchData.results?.length) {
+      throw new Error("No recipes found.");
+    }
+
+    const recipeId = searchData.results[0].id;
+
+    // Step 2: Fetch recipe details
+    const infoRes = await fetch(
+      `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${spoonacularKey}`
+    );
+    const infoData = await infoRes.json();
+
+    // Step 3: Return selected details
+    res.json({
+      id: infoData.id,
+      title: infoData.title,
+      image: infoData.image,
+      summary: infoData.summary,
+      ingredients: infoData.extendedIngredients?.map(i => i.original),
+      instructions: infoData.instructions || "No instructions provided.",
+      sourceUrl: infoData.sourceUrl
+    });
+  } catch (err) {
+    console.error("Error fetching recipe info:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ---- SERVER ----
 const PORT = process.env.PORT || 5001;
