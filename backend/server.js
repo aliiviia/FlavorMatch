@@ -47,6 +47,37 @@ async function getCuisine(recipeName) {
   return infoData.cuisines?.[0]?.toLowerCase() || "american";
 }
 
+let spotifyToken = null;
+let tokenExpires = 0;
+/**
+ * Obtain an access token from Spotify using our app’s client credentials (Client ID and Secret).
+ * This token allows the backend to call Spotify’s APIs securely.
+ */
+async function getSpotifyToken() {
+  if (spotifyToken && Date.now() < tokenExpires) return spotifyToken;
+
+  const client_id = process.env.SPOTIFY_CLIENT_ID;
+  const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization:
+        "Basic " +
+        Buffer.from(`${client_id}:${client_secret}`).toString("base64"),
+    },
+    body: "grant_type=client_credentials",
+  });
+
+  const data = await res.json();
+  spotifyToken = data.access_token;
+  tokenExpires = Date.now() + data.expires_in * 1000;
+  return spotifyToken;
+}
+
+
+
 
 // ---- SERVER ----
 const PORT = process.env.PORT || 5001;
