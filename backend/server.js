@@ -176,6 +176,30 @@ app.get("/api/recipeInfo", async (req, res) => {
   }
 });
 
+/** This route gets multiple recipes based on a search query */
+app.get("/api/recipes", async (req, res) => {
+  try {
+    const query = req.query.query;
+    const spoonacularKey = process.env.SPOONACULAR_KEY;
+
+    if (!query) return res.status(400).json({ error: "Missing search query." });
+
+    // 🔹 Get multiple recipes (e.g. 6 results)
+    const searchRes = await fetch(
+      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=6&apiKey=${spoonacularKey}`
+    );
+    const data = await searchRes.json();
+
+    if (!data.results?.length)
+      return res.status(404).json({ error: "No recipes found." });
+
+    res.json(data.results); // send back array of recipes
+  } catch (err) {
+    console.error("Error fetching recipes:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ---- SERVER ----
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
