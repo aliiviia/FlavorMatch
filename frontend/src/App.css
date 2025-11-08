@@ -1,53 +1,295 @@
-.App-header {
-  text-align: center;
-  padding: 2rem;
+/* ============ Global Palette & Base ============ */
+
+:root {
+  --bg-main: #f6f3ee;
+  --bg-alt: #d5d0c6;
+  --bg-muted: #b3aea3;
+  --card-bg: #faf7f2;
+  --accent: #c59a7b;
+  --accent-soft: #e0c7aa;
+  --accent-green: #7d8f7a;
+  --border-soft: #e1ddd6;
+  --text-main: #000000;        /* black text */
+  --text-soft: #1a1a1a;        /* dark gray */
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.12);
+  --transition-fast: 0.22s ease;
+  --font-serif: "Playfair Display", "Georgia", serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.button-row button {
-  margin: 0.5rem;
-  padding: 0.7rem 1.5rem;
-  background-color: #1db954;
-  border: none;
-  color: white;
-  border-radius: 6px;
+/* Reset-ish */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at top, #fdf8f1 0%, var(--bg-main) 40%, #ebe4da 100%);
+  color: var(--text-main);
+}
+
+/* App Shell */
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+}
+
+/* ============ Navbar ============ */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(16px);
+  background: rgba(245, 240, 233, 0.96);
+  border-bottom: 1px solid rgba(210, 203, 193, 0.8);
+}
+
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-green);
+  font-weight: 600;
+  font-size: 22px;
+  font-family: var(--font-serif);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nav-link {
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  color: #000;
+  text-decoration: none;
   cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
 }
 
-.button-row button:hover {
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent-green);
+  background: rgba(232, 225, 215, 0.8);
+  transform: translateY(-1px);
+}
+
+.spotify-btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.spotify-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+}
+
+/* ============ Shared ============ */
+
+.App {
+  text-align: center;
+  padding: 40px 22px 50px;
+}
+
+.App-header {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.App-header h1,
+.App-header h2 {
+  font-family: var(--font-serif);
+  color: #000;
+}
+
+.App-header p {
+  color: #000;
+}
+
+/* ============ Search Bar ============ */
+
+.search-row {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  padding: 9px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  width: 260px;
+  max-width: 80vw;
+  background: #fff;
+  color: #000;
+  font-size: 13px;
+}
+
+.search-input::placeholder {
+  color: #444;
+}
+
+.search-input:focus {
+  border-color: var(--accent-green);
+  box-shadow: 0 6px 18px rgba(115, 135, 116, 0.24);
+}
+
+.search-btn {
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent-green);
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: opacity var(--transition-fast);
+}
+
+.search-btn:hover {
   opacity: 0.9;
 }
 
-.recipe-card {
-  margin-top: 2rem;
-}
-
-.songs {
-  margin-top: 2rem;
-}
-
-.song-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.5rem;
-}
-
-.song-card {
-  background: #121212;
-  padding: 1rem;
-  border-radius: 10px;
-  color: white;
-  width: 200px;
-}
+/* ============ Recipe Grid ============ */
 
 .recipe-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  gap: 18px;
+  margin-top: 26px;
+}
+
+.recipe-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  width: 220px;
+  cursor: pointer;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  text-align: left;
+  color: #000;
+}
+
+.recipe-card img {
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.recipe-card h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
 }
 
 .recipe-card:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease-in-out;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+}
+
+/* ============ Recipe Details ============ */
+
+.back-btn {
+  background: transparent;
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.recipe-detail-image {
+  width: 60%;
+  max-width: 520px;
+  border-radius: var(--radius-lg);
+  margin-top: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.recipe-summary {
+  margin-top: 18px;
+  color: #000;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 14px;
+}
+
+.ingredients-list,
+.instructions {
+  color: #000;
+  font-size: 13px;
+}
+
+/* ============ Footer ============ */
+
+.footer {
+  background: linear-gradient(90deg, #d5d0c6, #b3aea3);
+  color: #000;
+  padding: 26px 20px 18px;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.footer-logo {
+  font-weight: 600;
+  font-family: var(--font-serif);
+  color: #000;
+}
+
+.footer-cols {
+  display: flex;
+  gap: 38px;
+  font-size: 12px;
+  color: #000;
+}
+
+.footer-copy {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 10px;
+  color: #000;
 }
 
