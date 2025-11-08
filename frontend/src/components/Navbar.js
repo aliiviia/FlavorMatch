@@ -35,10 +35,10 @@ export default function Navbar() {
           </NavLink>
 
           <NavLink
-            to="/create"
+            to="/custom"
             className={({ isActive }) => (isActive ? active : linkBase)}
           >
-            Create Recipe
+            Custom Recipe
           </NavLink>
 
           <button className="spotify-btn">⏺ Connect Spotify</button>
