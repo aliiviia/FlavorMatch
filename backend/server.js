@@ -4,8 +4,10 @@ import dotenv from "dotenv";
 import fetch from "node-fetch";
 import cuisineGenreMap from "./cuisineGenreMap.js";
 import { MOCK_RECIPES } from "./mockRecipes.js";
+import { pool } from "./db/index.js";
 
 dotenv.config();
+
 
 const app = express();
 app.use(cors());
