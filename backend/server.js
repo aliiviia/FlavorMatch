@@ -5,6 +5,7 @@ import fetch from "node-fetch";
 import cuisineGenreMap from "./cuisineGenreMap.js";
 import { MOCK_RECIPES } from "./mockRecipes.js";
 import { pool } from "./db/index.js";
+import axios from "axios";
 
 dotenv.config();
 
@@ -272,6 +273,78 @@ app.get("/api/playlist", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------
+// SPOTIFY OAUTH LOGIN FLOW (USER AUTHENTICATION)
+// ---------------------------------------------------
+
+// Step 1 — Redirect user to Spotify Login Page
+app.get("/login", (req, res) => {
+  const authorizeUrl = "https://accounts.spotify.com/authorize";
+
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: process.env.SPOTIFY_CLIENT_ID,
+    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+    scope: [
+      "user-read-email",
+      "user-read-private",
+      "playlist-modify-public",
+      "playlist-modify-private"
+    ].join(" ")
+  });
+
+  res.redirect(`${authorizeUrl}?${params.toString()}`);
+});
+
+
+// Step 2 — Spotify redirects back with a code → exchange it for an access token
+app.get("/callback", async (req, res) => {
+  const code = req.query.code;
+
+  try {
+    const tokenResponse = await axios.post(
+      "https://accounts.spotify.com/api/token",
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET
+      }),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      }
+    );
+
+    const access_token = tokenResponse.data.access_token;
+
+    // Redirect back to frontend with the token
+    res.redirect(`http://localhost:3000/?access_token=${access_token}`);
+  } catch (err) {
+    console.error("Error exchanging code:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to authenticate with Spotify" });
+  }
+});
+
+
+// Step 3 — Get the user’s Spotify profile using the access token
+app.get("/me", async (req, res) => {
+  const token = req.query.token;
+
+  try {
+    const userResponse = await axios.get("https://api.spotify.com/v1/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    res.json(userResponse.data);
+  } catch (err) {
+    console.error("Error fetching user profile:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch Spotify user profile" });
+  }
+});
+
 // Start server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+

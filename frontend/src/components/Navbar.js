@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 
-export default function Navbar() {
+export default function Navbar({ user }) {
   const linkBase = "nav-link";
   const active = "nav-link active";
 
@@ -41,7 +41,19 @@ export default function Navbar() {
             Custom Recipe
           </NavLink>
 
-          <button className="spotify-btn">⏺ Connect Spotify</button>
+          {/* Login or User Greeting */}
+          {user ? (
+            <span className="nav-user">Welcome, {user.display_name}</span>
+          ) : (
+            <button
+              className="spotify-btn"
+              onClick={() => {
+                window.location.href = "http://localhost:5001/login";
+              }}
+            >
+              Connect Spotify
+            </button>
+          )}
         </nav>
       </div>
     </header>
