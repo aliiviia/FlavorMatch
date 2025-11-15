@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MOCK_RECIPES } from "../mockRecipes"; 
 
 const sampleRecipes = [
   {
@@ -49,9 +50,13 @@ const sampleRecipes = [
 export default function ExploreRecipesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [recipes, setRecipes] = useState(sampleRecipes);
+  const [mock, setMock] = useState(MOCK_RECIPES);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSearch = async (e) => {
@@ -66,7 +71,7 @@ export default function ExploreRecipesPage() {
 
       // 🔗 Match your backend style (similar to RecipeDetails)
       const res = await fetch(
-        `http://localhost:5001/api/searchRecipes?query=${encodeURIComponent(
+        `http://localhost:5001/api/recipes?query=${encodeURIComponent(
           query
         )}`
       );
@@ -77,9 +82,9 @@ export default function ExploreRecipesPage() {
 
       const data = await res.json();
       // Adjust shape depending on backend: here we assume { results: [...] }
-      if (Array.isArray(data.results) && data.results.length > 0) {
+      if (Array.isArray(data) && data.length > 0) {
         setRecipes(
-          data.results.map((r) => ({
+          data.map((r) => ({
             id: r.id,
             title: r.title,
             image: r.image,
@@ -101,6 +106,44 @@ export default function ExploreRecipesPage() {
     }
   };
 
+  //spoonacular's integration example
+  const handleInputChange = async (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+  
+    if (value.trim().length < 1) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+  
+    try {
+      const res = await fetch(
+        `http://localhost:5001/api/autocomplete?query=${encodeURIComponent(value)}`
+      );
+  
+      if (!res.ok) throw new Error("Failed to fetch autocomplete");
+  
+      const data = await res.json();
+      
+      const filtered = data.filter((r) =>
+        r.title.toLowerCase().startsWith(value.toLowerCase())
+      );
+  
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+    } catch (err) {
+      console.error("⚠️ Autocomplete error:", err);
+  
+      // fallback: use local mock data if Spoonacular fails
+      const fallback = MOCK_RECIPES.filter((r) =>
+        r.title.toLowerCase().startsWith(value.toLowerCase())
+      );
+      setSuggestions(fallback);
+      setShowSuggestions(true);
+    }
+  };  
+
   return (
     <main className="explore-recipes-page">
       <div className="explore-container">
@@ -115,18 +158,45 @@ export default function ExploreRecipesPage() {
         </header>
 
         {/* Search Bar */}
-        <form className="explore-search-form" onSubmit={handleSearch}>
-          <div className="search-input-wrapper">
-            <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              className="explore-search-input"
-              placeholder="Search for recipes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+        <form
+          className="search-input-wrapper"
+          style={{ position: "relative" }}
+          onSubmit={handleSearch}
+        >
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            className="explore-search-input"
+            placeholder="Search for recipes..."
+            value={searchQuery}
+            onChange={handleInputChange}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            onFocus={() => {
+              if (suggestions.length > 0) setShowSuggestions(true);
+            }}
+          />
+
+          {/* 🔽 Dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <ul className="autocomplete-list">
+              {suggestions.map((recipe, i) => (
+                <li
+                  key={recipe.id || i}
+                  className="autocomplete-item"
+                  onMouseDown={() => {
+                    setSearchQuery(recipe.title);
+                    setShowSuggestions(false);
+                    setSuggestions([]);
+                    navigate(`/recipe/${recipe.id}`);
+                  }}
+                >
+                  {recipe.title}
+                </li>
+              ))}
+            </ul>
+          )}
         </form>
+
 
         {/* Loading state */}
         {loading && (

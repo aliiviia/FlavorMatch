@@ -215,8 +215,10 @@ app.get("/api/recipes", async (req, res) => {
   const spoonacularKey = process.env.SPOONACULAR_KEY;
 
   reenableSpoonacularIfTime();
+  console.log("🔍 Received query:", query);
 
   if (!spoonacularEnabled) {
+    console.warn("🚫 Spoonacular temporarily disabled — using mock data.");
     const filtered = MOCK_RECIPES.filter((r) =>
       r.title.toLowerCase().includes(query)
     );
@@ -228,7 +230,9 @@ app.get("/api/recipes", async (req, res) => {
       `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=5&apiKey=${spoonacularKey}`
     );
 
-    if (!apiRes.ok) throw new Error("Spoonacular failed");
+    if (!apiRes.ok)
+      throw new Error(`Spoonacular failed (status ${apiRes.status})`);
+
     const data = await apiRes.json();
 
     const recipes = data.results.map((r) => ({
@@ -247,6 +251,61 @@ app.get("/api/recipes", async (req, res) => {
     res.json(filtered.length ? filtered : MOCK_RECIPES.slice(0, 5));
   }
 });
+
+app.get("/api/autocomplete", async (req, res) => {
+  const query = req.query.query?.toLowerCase();
+  const spoonacularKey = process.env.SPOONACULAR_KEY;
+
+  if (!query) {
+    return res.status(400).json({ error: "Missing query parameter" });
+  }
+
+  try {
+    // Skip Spoonacular entirely if it's disabled or key missing
+    if (!spoonacularEnabled || !spoonacularKey) {
+      console.warn("🚫 [Autocomplete] Spoonacular disabled — using mock data.");
+      const filtered = MOCK_RECIPES.filter((r) =>
+        r.title.toLowerCase().includes(query)
+      );
+      return res.json(
+        filtered.slice(0, 8).map((r) => ({
+          id: r.id,
+          title: r.title,
+        }))
+      );
+    }
+
+    // Attempt Spoonacular call
+    const apiRes = await fetch(
+      `https://api.spoonacular.com/recipes/autocomplete?number=8&query=${encodeURIComponent(
+        query
+      )}&apiKey=${spoonacularKey}`
+    );
+
+    if (!apiRes.ok) {
+      throw new Error(`Spoonacular autocomplete failed (${apiRes.status})`);
+    }
+
+    const data = await apiRes.json();
+    res.json(data);
+  } catch (err) {
+    console.warn("⚠️ Error in /api/autocomplete:", err.message);
+    disableSpoonacular?.(); // if you have this helper, it prevents repeated fails
+
+    // Fallback to mock data
+    const filtered = MOCK_RECIPES.filter((r) =>
+      r.title.toLowerCase().includes(query)
+    );
+    res.json(
+      filtered.slice(0, 8).map((r) => ({
+        id: r.id,
+        title: r.title,
+      }))
+    );
+  }
+});
+
+
 
 // Playlist Endpoint temporary will be changing when OAuth is integrated(always public)
 app.get("/api/playlist", async (req, res) => {
