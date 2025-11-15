@@ -1,20 +1,33 @@
-/* ============= Global ============= */
+/* ==========================================================
+   FlavorMatch – Full Dark Theme Styles
+   Use this as your main App.css
+   ========================================================== */
 
+/* ============= Global Variables & Reset ============= */
 :root {
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-
-  --brand-green: #26a866;
-  --brand-green-dark: #1f8c55;
-  --brand-teal: #11c5b8;
-  --navy: #111827;
-  --muted: #6b7280;
-  --soft-gray: #f5f7fb;
-  --border-soft: #e5e7eb;
-
+  --brand-green: #1db954;
+  --brand-green-hover: #1ed760;
+  --brand-green-glow: #22c55e;
+  --spotify-black: #191414;
+  --spotify-dark: #121212;
+  --spotify-gray: #181818;
+  --spotify-light-gray: #282828;
+  --spotify-lighter-gray: #3e3e3e;
+  --page-bg: #121212;
+  --nav-bg: #000000;
+  --card-bg: #1e1e1e;
+  --card-bg-soft: #282828;
+  --card-border: #333333;
+  --text-main: #ffffff;
+  --text-subtle: #b3b3b3;
+  --text-muted: #7f7f7f;
+  --border-soft: #333333;
   --radius-lg: 24px;
   --radius-md: 16px;
-
-  --shadow-soft: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --radius-pill: 999px;
+  --shadow-strong: 0 26px 60px rgba(0, 0, 0, 0.9);
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.8);
 }
 
 *,
@@ -23,17 +36,29 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
-  color: var(--navy);
-  background-color: #ffffff;
+  background: var(--page-bg);
+  color: var(--text-main);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--page-bg);
 }
 
 .page-content {
@@ -41,20 +66,18 @@ body {
 }
 
 /* ============= Navbar ============= */
-
 .nav {
   position: sticky;
   top: 0;
   z-index: 40;
-  backdrop-filter: blur(14px);
-  background: rgba(255, 255, 255, 0.98);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+  background: #000000;
+  border-bottom: 1px solid var(--spotify-gray);
 }
 
 .nav-inner {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 14px 26px;
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,314 +86,407 @@ body {
 .nav-logo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
   font-weight: 700;
-  font-size: 22px;
-  color: var(--navy);
+  font-size: 24px;
+  color: var(--text-main);
+}
+
+.nav-logo-icon {
+  font-size: 24px;
+  color: var(--brand-green);
 }
 
 .nav-links {
   display: flex;
-  gap: 18px;
+  gap: 40px;
   align-items: center;
 }
 
 .nav-link {
-  text-decoration: none;
-  font-size: 15px;
-  color: var(--muted);
-  padding: 6px 10px;
-  border-radius: 999px;
-  transition: all 0.18s ease;
+  padding: 8px 0;
+  font-size: 16px;
+  color: var(--text-subtle);
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .nav-link:hover {
-  color: var(--navy);
+  color: var(--text-main);
 }
 
 .nav-link.active {
-  color: var(--navy);
-  font-weight: 600;
+  color: var(--text-main);
 }
 
 .spotify-btn,
 .connect-btn {
-  padding: 9px 20px;
-  border-radius: 999px;
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
   border: none;
   background: var(--brand-green);
-  color: #ffffff;
-  font-size: 14px;
+  color: #000000;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 10px 26px rgba(5, 150, 105, 0.35);
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .spotify-btn:hover,
 .connect-btn:hover {
-  background: var(--brand-green-dark);
+  background: var(--brand-green-hover);
   transform: translateY(-1px);
 }
 
-/* ============= Hero ============= */
-
+/* ============= HERO – Exact match to screenshot 1 ============= */
 .hero {
   position: relative;
-  padding: 120px 20px 200px;  /* Reduced top padding from 180px to 120px (about 2 inches up) */
-  color: #ffffff;
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
+  padding: 80px 20px 100px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(25, 20, 20, 0.85) 100%),
+              url('https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg') center center / cover no-repeat;
 }
 
-.hero-with-image {
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.3),
-      rgba(0, 0, 0, 0.5)
-    ),
-    url("home.png") center center / cover no-repeat;
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-}
-
-.hero-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  max-width: 900px;
+.hero-inner,
+.hero-inner-centered {
+  max-width: 1000px;
   margin: 0 auto;
-  margin-top: -60px;  /* Additional upward adjustment */
+  text-align: center;
 }
 
-.hero-title {
-  margin: 0 0 35px;
-  font-size: 68px;  /* Reduced from 80px */
+/* Icon row with green glow effect */
+.hero-icons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 50px;
+}
+
+.hero-icon-wrapper {
+  position: relative;
+}
+
+.hero-icon-glow {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(29, 185, 84, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  box-shadow: 0 0 60px rgba(29, 185, 84, 0.4),
+              0 0 100px rgba(29, 185, 84, 0.2);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+}
+
+/* Main heading with exact styling */
+.hero-title-large {
+  margin: 0 0 30px;
+  font-size: 86px;
   font-weight: 700;
-  letter-spacing: -1px;
-  line-height: 1;
+  letter-spacing: -2px;
+  line-height: 1.05;
   color: #ffffff;
 }
 
-.hero-title span {
-  color: #1DB954;  /* Spotify green for "Beat" */
-  display: inline;  /* Keep on same line */
+.hero-highlight {
+  color: var(--brand-green);
 }
 
-/* Subtitle and subtext spacing */
-.hero-subtitle {
-  margin: 0 0 20px;
-  font-size: 28px;
-  font-weight: 400;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-}
-
-.hero-subtext {
+.hero-subtext-large {
   margin: 0 0 50px;
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 300;
-  line-height: 1.4;
+  font-size: 22px;
+  color: #b3b3b3;
+  line-height: 1.5;
+  max-width: 750px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* ============= Hero Buttons (Exact Replica) ============= */
-
+/* Hero buttons matching screenshot exactly */
 .hero-actions {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-/* Shared button base */
 .primary-btn,
 .secondary-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 32px;
+  gap: 10px;
+  padding: 18px 40px;
+  border-radius: 12px;
   font-size: 18px;
   font-weight: 600;
-  border-radius: 50px;
-  cursor: pointer;
   border: none;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  position: relative;
-  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 220px;
 }
 
-/* Green Start Cooking - Spotify Green */
 .primary-btn {
-  background-color: #1DB954;
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+  background: var(--brand-green);
+  color: #000000;
 }
 
 .primary-btn:hover {
-  background-color: #1ed760;
+  background: var(--brand-green-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
 }
 
-.primary-btn:active {
-  transform: translateY(0);
-}
-
-/* White/Gray Connect Spotify */
 .secondary-btn {
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #191414;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  color: var(--text-main);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .secondary-btn:hover {
-  background-color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.secondary-btn:active {
-  transform: translateY(0);
-}
-
-/* Icons */
-.spotify-icon,
-.btn-icon {
-  width: 24px;
-  height: 24px;
+.btn-icon,
+.spotify-icon {
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.btn-icon {
-  color: #ffffff;
+/* ============= Benefits/How It Works Section - Spotify Dark Theme ============= */
+.benefits-section {
+  background: linear-gradient(135deg, #191414 0%, #121212 100%);
+  padding: 100px 20px;
+  position: relative;
+  border-top: 1px solid rgba(29, 185, 84, 0.2);
+  border-bottom: 1px solid rgba(29, 185, 84, 0.2);
 }
 
-.spotify-icon {
-  color: #1DB954;
+.benefits-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(29, 185, 84, 0.03) 0%, transparent 50%),
+              radial-gradient(circle at 80% 50%, rgba(29, 185, 84, 0.03) 0%, transparent 50%);
+  pointer-events: none;
 }
 
-/* ============= Generic Sections ============= */
+.benefits-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-.section {
-  padding: 70px 20px;
-  background-color: #ffffff;
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.benefit-card {
+  background: #181818;
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 48px 32px;
+  border: 1px solid transparent;
+  text-align: center;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.benefit-card:hover {
+  transform: translateY(-4px);
+  background: #282828;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Green icon with glow */
+.benefit-icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.benefit-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--brand-green-glow);
+  position: relative;
+}
+
+.benefit-icon::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(29, 185, 84, 0.15);
+  box-shadow: 0 0 40px rgba(29, 185, 84, 0.4);
+}
+
+.benefit-title {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.benefit-text {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-subtle);
+  line-height: 1.6;
+}
+
+/* ============= Featured Pairings Section with unique styling ============= */
+/* ============= Featured Pairings Section - Spotify Style ============= */
+.featured-pairings {
+  background: linear-gradient(180deg, #121212 0%, #181818 50%, #121212 100%);
+  padding: 100px 20px;
+  position: relative;
+}
+
+.featured-pairings::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #1db954 50%, 
+    transparent 100%);
+}
+
+.featured-pairings::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #1db954 50%, 
+    transparent 100%);
+}
+
+.featured-pairings::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(29, 185, 84, 0.3) 50%, 
+    transparent 100%);
 }
 
 .section-header {
   max-width: 720px;
-  margin: 0 auto 40px;
+  margin: 0 auto 50px;
   text-align: center;
+  position: relative;
+}
+
+.section-header::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -30px;
+  width: 60px;
+  height: 3px;
+  background: var(--brand-green);
+  border-radius: 2px;
 }
 
 .section-header h2 {
-  margin: 0 0 8px;
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--navy);
+  margin: 0 0 12px;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 .section-header p {
   margin: 0;
-  font-size: 15px;
-  color: var(--muted);
-}
-
-/* ============= How It Works ============= */
-
-.how-it-works {
-  background: #f5fffb;
-}
-
-.steps-row {
-  max-width: 1000px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 26px;
-}
-
-.step-card {
-  background: #ffffff;
-  padding: 26px 22px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-  text-align: center;
-}
-
-.step-icon {
-  width: 54px;
-  height: 54px;
-  margin: 0 auto 14px;
-  border-radius: 999px;
-  background: #e0f9ef;
-  color: var(--brand-green-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-.step-card h3 {
-  margin: 4px 0 8px;
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.step-card p {
-  margin: 0;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-/* ============= Featured Pairings ============= */
-
-.featured-pairings {
-  background: #ffffff;
-  text-align: center;
+  font-size: 18px;
+  color: var(--text-subtle);
 }
 
 .pairings-grid {
-  max-width: 1150px;
-  margin: 0 auto 36px;
+  max-width: 1200px;
+  margin: 0 auto 40px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  gap: 28px;
 }
 
 .pairing-card {
-  background: #ffffff;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+  background: #282828;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.pairing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, 
+    rgba(29, 185, 84, 0.08) 0%, 
+    transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pairing-card:hover::before {
+  opacity: 1;
 }
 
 .pairing-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  transform: translateY(-8px) scale(1.02);
+  background: #3e3e3e;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7),
+              0 0 60px rgba(29, 185, 84, 0.15);
 }
 
 .pairing-image-wrap {
   position: relative;
-  height: 170px;
+  height: 200px;
   overflow: hidden;
 }
 
@@ -378,172 +494,135 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.pairing-card:hover .pairing-image {
+  transform: scale(1.05);
 }
 
 .pairing-badge {
   position: absolute;
   top: 12px;
   right: 12px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.88);
-  color: #fff;
-  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pairing-body {
-  padding: 16px 18px 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .pairing-body h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text-main);
 }
 
 .pairing-desc {
   margin: 0;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 14px;
+  color: var(--text-subtle);
+  line-height: 1.5;
 }
 
 .pairing-meta {
   display: flex;
-  gap: 14px;
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .pairing-footer {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
   justify-content: flex-end;
 }
 
 .cook-btn {
-  padding: 8px 18px;
-  border-radius: 999px;
+  padding: 8px 20px;
+  border-radius: 8px;
   border: none;
-  background: var(--brand-green);
-  color: #ffffff;
-  font-size: 13px;
+  background: rgba(29, 185, 84, 0.9);
+  color: #000000;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s ease;
-  position: relative;
-  z-index: 2;
-}
-
-.cook-btn:hover {
-  background: var(--brand-green-dark);
-  transform: scale(1.05);
-}
-
-.cook-btn:active {
-  transform: scale(0.98);
-}
-
-.outline-dark-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 40px;
-  border-radius: 999px;
-  border: none;
-  background: #0b1725;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  margin: 20px auto 0;
-  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.35);
   transition: all 0.2s ease;
 }
 
-.outline-dark-btn:hover {
-  background: #162334;
-  transform: translateY(-2px);
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.45);
+.cook-btn:hover {
+  background: var(--brand-green);
+  transform: translateX(2px);
 }
 
-.outline-dark-btn:active {
-  transform: translateY(-1px);
-}
-
-/* ============= Cooking Genres ============= */
-
-.genres-section {
-  padding: 80px 20px 90px;
-  background: linear-gradient(90deg, #1fb67a, #2aa7dd);
-  color: #ffffff;
-}
-
-.genres-inner {
-  max-width: 1150px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.genres-inner h2 {
-  margin: 0 0 8px;
-  font-size: 32px;
-  font-weight: 800;
-}
-
-.genres-inner p {
-  margin: 0 0 34px;
-  font-size: 16px;
-}
-
-.genres-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.genre-card {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-lg);
-  padding: 26px 20px;
-  backdrop-filter: blur(6px);
-  text-align: center;
-  color: #ffffff;
-}
-
-.genre-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+/* Explore all recipes button */
+.outline-dark-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
-  font-size: 26px;
+  margin: 20px auto 0;
+  padding: 14px 40px;
+  border-radius: 12px;
+  border: 2px solid rgba(29, 185, 84, 0.3);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
 }
 
-.genre-card h3 {
-  margin: 0 0 4px;
-  font-size: 17px;
-  font-weight: 600;
+.outline-dark-btn:hover {
+  border-color: var(--brand-green);
+  background: rgba(29, 185, 84, 0.1);
+  transform: translateY(-2px);
 }
 
-.genre-card p {
-  margin: 0;
-  font-size: 13px;
-}
-
-/* ============= Stay In Tune ============= */
-
+/* ============= Stay In Tune Section ============= */
 .stay-in-tune {
-  padding: 80px 20px 70px;
-  background: linear-gradient(180deg, #7b3cff, #f5487f, #e0562b);
-  color: #ffffff;
+  padding: 100px 20px;
+  background: radial-gradient(circle at center, #191414 0%, #000000 100%);
+  margin-top: 0;
+  position: relative;
+}
+
+.stay-in-tune::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #1db954 50%, 
+    transparent 100%);
+}
+
+.stay-in-tune::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(29, 185, 84, 0.05) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .stay-inner {
@@ -553,14 +632,16 @@ body {
 }
 
 .stay-inner h2 {
-  margin: 0 0 8px;
-  font-size: 30px;
-  font-weight: 800;
+  margin: 0 0 12px;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 .stay-inner p {
-  margin: 0 0 26px;
-  font-size: 15px;
+  margin: 0 0 32px;
+  font-size: 18px;
+  color: var(--text-subtle);
 }
 
 .stay-form {
@@ -571,50 +652,58 @@ body {
 }
 
 .stay-form input {
-  padding: 14px 20px;
-  min-width: 260px;
-  border-radius: 999px;
-  border: none;
+  padding: 14px 24px;
+  min-width: 300px;
+  border-radius: 10px;
+  border: 1px solid #3e3e3e;
+  background: #282828;
+  color: var(--text-main);
+  font-size: 15px;
   outline: none;
-  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.stay-form input::placeholder {
+  color: #7f7f7f;
+}
+
+.stay-form input:focus {
+  border-color: var(--brand-green);
+  background: #3e3e3e;
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
 }
 
 .subscribe-btn {
-  padding: 14px 26px;
-  border-radius: 999px;
+  padding: 14px 32px;
+  border-radius: 10px;
   border: none;
-  background: #ffffff;
-  color: #7b3cff;
-  font-size: 14px;
+  background: var(--brand-green);
+  color: #000000;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   transition: all 0.2s ease;
 }
 
 .subscribe-btn:hover {
+  background: var(--brand-green-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(123, 60, 255, 0.25);
-}
-
-.subscribe-btn:active {
-  transform: translateY(-1px);
 }
 
 /* ============= Footer ============= */
-
 .footer {
-  background: #050816;
-  color: #e5e7eb;
-  padding: 34px 24px 18px;
-  margin-top: 0;
+  background: #000000;
+  color: #b3b3b3;
+  padding: 40px 24px 20px;
+  border-top: 1px solid #282828;
 }
 
 .footer-inner {
   max-width: 1200px;
-  margin: 0 auto 18px;
+  margin: 0 auto 20px;
   display: flex;
   justify-content: space-between;
   gap: 40px;
@@ -627,98 +716,584 @@ body {
   gap: 8px;
   font-size: 20px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-main);
 }
 
 .footer-text {
-  margin-top: 6px;
-  font-size: 13px;
-  color: #9ca3af;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 .footer-cols {
   display: flex;
-  gap: 40px;
-  font-size: 13px;
+  gap: 60px;
+  font-size: 14px;
 }
 
 .footer-cols h4 {
-  margin: 0 0 8px;
-  font-size: 14px;
+  margin: 0 0 12px;
+  font-size: 15px;
   font-weight: 600;
+  color: var(--text-main);
 }
 
 .footer-cols p {
-  margin: 3px 0;
-  color: #9ca3af;
+  margin: 6px 0;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.footer-cols p:hover {
+  color: var(--text-subtle);
 }
 
 .footer-icons {
   display: flex;
-  gap: 12px;
-  font-size: 18px;
+  gap: 16px;
+  font-size: 20px;
+}
+
+.footer-icons span {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-icons span:hover {
+  color: var(--brand-green);
 }
 
 .footer-copy {
   max-width: 1200px;
   margin: 0 auto;
-  padding-top: 10px;
-  border-top: 1px solid rgba(75, 85, 99, 0.5);
-  font-size: 11px;
-  color: #6b7280;
-  text-align: left;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
 }
 
-/* ============= Responsive ============= */
+/* ============= Explore Recipes Page - Exact Match ============= */
+.explore-recipes-page {
+  min-height: 100vh;
+  background: #000000;
+  padding: 60px 20px;
+}
 
+.explore-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.explore-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.explore-title {
+  font-size: 56px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #ffffff;
+}
+
+.title-green {
+  color: #1db954;
+}
+
+.explore-subtitle {
+  font-size: 18px;
+  color: #b3b3b3;
+  margin: 0 0 40px;
+}
+
+/* Search Bar */
+.explore-search-form {
+  max-width: 700px;
+  margin: 0 auto 60px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  opacity: 0.5;
+}
+
+.explore-search-input {
+  width: 100%;
+  padding: 18px 20px 18px 55px;
+  font-size: 16px;
+  border: none;
+  border-radius: 30px;
+  background: #282828;
+  color: #ffffff;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.explore-search-input::placeholder {
+  color: #7f7f7f;
+}
+
+.explore-search-input:focus {
+  background: #3e3e3e;
+  box-shadow: 0 0 0 2px #1db954;
+}
+
+/* Recipes Grid */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.recipe-card {
+  background: #181818;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.recipe-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+}
+
+.recipe-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.recipe-card:hover .recipe-image {
+  transform: scale(1.05);
+}
+
+.recipe-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}
+
+.recipe-content {
+  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95));
+}
+
+.recipe-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.recipe-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  color: #b3b3b3;
+}
+
+.recipe-time,
+.recipe-servings {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-icon {
+  opacity: 0.8;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px;
+  font-size: 18px;
+  color: #b3b3b3;
+}
+
+/* ============= Favorites/My Playlist Page - Exact Match ============= */
+.favorites-page {
+  min-height: 100vh;
+  background: #000000;
+  padding: 60px 20px;
+}
+
+.favorites-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.favorites-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.header-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.favorites-title {
+  font-size: 52px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #ffffff;
+}
+
+.favorites-subtitle {
+  font-size: 18px;
+  color: #7f7f7f;
+  margin: 0;
+}
+
+/* Spotify Connect Card */
+.spotify-connect-section {
+  margin-bottom: 60px;
+}
+
+.spotify-connect-card {
+  background: #181818;
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  border: 1px solid #282828;
+}
+
+.spotify-icon-large {
+  width: 80px;
+  height: 80px;
+  background: rgba(29, 185, 84, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin: 0 auto 24px;
+}
+
+.connect-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.connect-description {
+  font-size: 16px;
+  color: #7f7f7f;
+  margin: 0 0 32px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.spotify-connect-btn {
+  background: #1db954;
+  color: #000000;
+  border: none;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spotify-connect-btn:hover {
+  background: #1ed760;
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+/* Recipe-Song Pairings */
+.pairings-section {
+  margin-top: 60px;
+}
+
+.pairings-heading {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 30px;
+}
+
+.pairings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pairing-card {
+  background: #181818;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.pairing-card:hover {
+  background: #282828;
+}
+
+.pairing-card.active {
+  border-color: #1db954;
+  background: #1a1a1a;
+}
+
+.pairing-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.pairing-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.pairing-info {
+  flex: 1;
+}
+
+.pairing-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.pairing-songs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.song-item {
+  font-size: 14px;
+  color: #7f7f7f;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.song-icon {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.pairing-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid #3e3e3e;
+  color: #b3b3b3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #282828;
+  border-color: #1db954;
+  color: #ffffff;
+}
+
+/* Responsive Design */
 @media (max-width: 1024px) {
-  .pairings-grid {
+  .recipes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .explore-title {
+    font-size: 48px;
+  }
+  
+  .favorites-title {
+    font-size: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .recipes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .explore-title {
+    font-size: 40px;
+  }
+  
+  .favorites-title {
+    font-size: 36px;
+  }
+  
+  .pairing-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .pairing-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .pairing-actions {
+    margin-top: 16px;
+    align-self: flex-end;
+  }
+}
+
+/* ============= Other Pages (keeping essential styles) ============= */
+.recipes-page,
+.recipe-page,
+.custom-page,
+.playlist-page {
+  padding: 80px 20px;
+  background: var(--page-bg);
+}
+
+.recipes-page-inner,
+.recipe-page-inner,
+.custom-page-inner,
+.playlist-page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============= Responsive Breakpoints ============= */
+@media (max-width: 1024px) {
+  .hero-title-large {
+    font-size: 72px;
+  }
+  
+  .benefits-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .genres-grid {
+  
+  .pairings-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .hero-inner h1 {
-    font-size: 40px;
+  .nav-inner {
+    padding-inline: 20px;
   }
-
-  .steps-row {
+  
+  .nav-links {
+    gap: 20px;
+  }
+  
+  .spotify-btn {
+    display: none;
+  }
+  
+  .hero-title-large {
+    font-size: 56px;
+  }
+  
+  .hero-subtext-large {
+    font-size: 18px;
+  }
+  
+  .hero-icons {
+    gap: 24px;
+  }
+  
+  .hero-icon-glow {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+  
+  .benefits-grid,
+  .pairings-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+  }
+  
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
+    max-width: 280px;
   }
 }
 
 @media (max-width: 640px) {
-  .pairings-grid {
-    grid-template-columns: 1fr;
+  .hero {
+    padding-top: 60px;
   }
-
-  .genres-grid {
-    grid-template-columns: 1fr;
+  
+  .hero-title-large {
+    font-size: 42px;
   }
-
-  .nav-inner {
-    padding-inline: 16px;
+  
+  .hero-subtext-large {
+    font-size: 16px;
   }
-
-  .spotify-btn {
-    display: none;
+  
+  .section-header h2 {
+    font-size: 32px;
   }
-}
-
-/* Mobile responsive for hero buttons */
-@media (max-width: 600px) {
-  .hero-actions {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .primary-btn,
-  .secondary-btn {
-    width: 100%;
-    max-width: 260px;
+  
+  .stay-form input {
+    min-width: 100%;
   }
 }
