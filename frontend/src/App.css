@@ -1,63 +1,83 @@
-/* ============ Global Palette & Base ============ */
+/* ==========================================================
+   FlavorMatch – Full Dark Theme Styles
+   Use this as your main App.css
+   ========================================================== */
 
+/* ============= Global Variables & Reset ============= */
 :root {
-  --bg-main: #f6f3ee;
-  --bg-alt: #d5d0c6;
-  --bg-muted: #b3aea3;
-  --card-bg: #faf7f2;
-  --accent: #c59a7b;
-  --accent-soft: #e0c7aa;
-  --accent-green: #7d8f7a;
-  --border-soft: #e1ddd6;
-  --text-main: #000000;        /* black text */
-  --text-soft: #1a1a1a;        /* dark gray */
-  --radius-lg: 18px;
-  --radius-md: 12px;
-  --shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.12);
-  --transition-fast: 0.22s ease;
-  --font-serif: "Playfair Display", "Georgia", serif;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --brand-green: #1db954;
+  --brand-green-hover: #1ed760;
+  --brand-green-glow: #22c55e;
+  --spotify-black: #191414;
+  --spotify-dark: #121212;
+  --spotify-gray: #181818;
+  --spotify-light-gray: #282828;
+  --spotify-lighter-gray: #3e3e3e;
+  --page-bg: #121212;
+  --nav-bg: #000000;
+  --card-bg: #1e1e1e;
+  --card-bg-soft: #282828;
+  --card-border: #333333;
+  --text-main: #ffffff;
+  --text-subtle: #b3b3b3;
+  --text-muted: #7f7f7f;
+  --border-soft: #333333;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-pill: 999px;
+  --shadow-strong: 0 26px 60px rgba(0, 0, 0, 0.9);
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.8);
 }
 
-/* Reset-ish */
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: radial-gradient(circle at top, #fdf8f1 0%, var(--bg-main) 40%, #ebe4da 100%);
+  background: var(--page-bg);
   color: var(--text-main);
 }
 
-/* App Shell */
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--page-bg);
 }
 
 .page-content {
   flex: 1;
 }
 
-/* ============ Navbar ============ */
-
+/* ============= Navbar ============= */
 .nav {
   position: sticky;
   top: 0;
-  z-index: 20;
-  backdrop-filter: blur(16px);
-  background: rgba(245, 240, 233, 0.96);
-  border-bottom: 1px solid rgba(210, 203, 193, 0.8);
+  z-index: 40;
+  background: #000000;
+  border-bottom: 1px solid var(--spotify-gray);
 }
 
 .nav-inner {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 14px 26px;
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -66,230 +86,1483 @@ body {
 .nav-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--accent-green);
-  font-weight: 600;
-  font-size: 22px;
-  font-family: var(--font-serif);
+  gap: 10px;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--text-main);
+}
+
+.nav-logo-icon {
+  font-size: 24px;
+  color: var(--brand-green);
 }
 
 .nav-links {
   display: flex;
+  gap: 40px;
   align-items: center;
-  gap: 14px;
 }
 
 .nav-link {
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  color: #000;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+  padding: 8px 0;
+  font-size: 16px;
+  color: var(--text-subtle);
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
-.nav-link:hover,
+.nav-link:hover {
+  color: var(--text-main);
+}
+
 .nav-link.active {
-  color: var(--accent-green);
-  background: rgba(232, 225, 215, 0.8);
+  color: var(--text-main);
+}
+
+.spotify-btn,
+.connect-btn {
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--brand-green);
+  color: #000000;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spotify-btn:hover,
+.connect-btn:hover {
+  background: var(--brand-green-hover);
   transform: translateY(-1px);
 }
 
-.spotify-btn {
-  padding: 7px 16px;
-  border-radius: 999px;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  font-weight: 500;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+/* ============= HERO – Exact match to screenshot 1 ============= */
+.hero {
+  position: relative;
+  min-height: calc(100vh - 80px);
+  padding: 80px 20px 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.9) 0%, rgba(25, 20, 20, 0.85) 100%),
+              url('https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg') center center / cover no-repeat;
 }
 
-.spotify-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
-}
-
-/* ============ Shared ============ */
-
-.App {
-  text-align: center;
-  padding: 40px 22px 50px;
-}
-
-.App-header {
+.hero-inner,
+.hero-inner-centered {
   max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Icon row with green glow effect */
+.hero-icons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 50px;
+}
+
+.hero-icon-wrapper {
+  position: relative;
+}
+
+.hero-icon-glow {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(29, 185, 84, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  box-shadow: 0 0 60px rgba(29, 185, 84, 0.4),
+              0 0 100px rgba(29, 185, 84, 0.2);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+}
+
+/* Main heading with exact styling */
+.hero-title-large {
+  margin: 0 0 30px;
+  font-size: 86px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  line-height: 1.05;
+  color: #ffffff;
+}
+
+.hero-highlight {
+  color: var(--brand-green);
+}
+
+.hero-subtext-large {
+  margin: 0 0 50px;
+  font-size: 22px;
+  color: #b3b3b3;
+  line-height: 1.5;
+  max-width: 750px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Hero buttons matching screenshot exactly */
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 40px;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 220px;
+}
+
+.primary-btn {
+  background: var(--brand-green);
+  color: #000000;
+}
+
+.primary-btn:hover {
+  background: var(--brand-green-hover);
+  transform: translateY(-2px);
+}
+
+.secondary-btn {
+  background: transparent;
+  color: var(--text-main);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.secondary-btn:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-icon,
+.spotify-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============= Benefits/How It Works Section - Spotify Dark Theme ============= */
+.benefits-section {
+  background: linear-gradient(135deg, #191414 0%, #121212 100%);
+  padding: 100px 20px;
+  position: relative;
+  border-top: 1px solid rgba(29, 185, 84, 0.2);
+  border-bottom: 1px solid rgba(29, 185, 84, 0.2);
+}
+
+.benefits-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(29, 185, 84, 0.03) 0%, transparent 50%),
+              radial-gradient(circle at 80% 50%, rgba(29, 185, 84, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.benefits-inner {
+  max-width: 1200px;
   margin: 0 auto;
 }
 
-.App-header h1,
-.App-header h2 {
-  font-family: var(--font-serif);
-  color: #000;
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
 }
 
-.App-header p {
-  color: #000;
+.benefit-card {
+  background: #252525;
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 48px 32px;
+  border: 1px solid transparent;
+  text-align: center;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-/* ============ Search Bar ============ */
-
-.search-row {
-  margin-top: 18px;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.search-input {
-  padding: 9px 11px;
-  border-radius: 999px;
-  border: 1px solid var(--border-soft);
-  width: 260px;
-  max-width: 80vw;
-  background: #fff;
-  color: #000;
-  font-size: 13px;
-}
-
-.search-input::placeholder {
-  color: #444;
-}
-
-.search-input:focus {
-  border-color: var(--accent-green);
-  box-shadow: 0 6px 18px rgba(115, 135, 116, 0.24);
-}
-
-.search-btn {
-  padding: 9px 18px;
-  border-radius: 999px;
-  border: none;
-  background: var(--accent-green);
-  color: #fff;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: opacity var(--transition-fast);
-}
-
-.search-btn:hover {
-  opacity: 0.9;
-}
-
-/* ============ Recipe Grid ============ */
-
-.recipe-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 18px;
-  margin-top: 26px;
-}
-
-.recipe-card {
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  padding: 12px;
-  width: 220px;
-  cursor: pointer;
-  border: 1px solid var(--border-soft);
-  box-shadow: var(--shadow-soft);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  text-align: left;
-  color: #000;
-}
-
-.recipe-card img {
-  width: 100%;
-  border-radius: var(--radius-md);
-}
-
-.recipe-card h3 {
-  font-size: 14px;
-  font-weight: 500;
-  color: #000;
-}
-
-.recipe-card:hover {
+.benefit-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  background: #282828;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
-/* ============ Recipe Details ============ */
+/* Green icon with glow */
+.benefit-icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
 
-.back-btn {
+.benefit-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   background: transparent;
-  color: var(--accent-green);
-  border: 1px solid var(--accent-green);
-  border-radius: 999px;
-  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: var(--brand-green-glow);
+  position: relative;
+}
+
+.benefit-icon::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(29, 185, 84, 0.15);
+  box-shadow: 0 0 40px rgba(29, 185, 84, 0.4);
+}
+
+.benefit-title {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.benefit-text {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-subtle);
+  line-height: 1.6;
+}
+
+/* ============= Featured Pairings Section with unique styling ============= */
+/* ============= Featured Pairings Section - Spotify Style ============= */
+.featured-pairings {
+  background: linear-gradient(180deg, #121212 0%, #181818 50%, #121212 100%);
+  padding: 100px 20px;
+  position: relative;
+}
+
+.featured-pairings::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #1db954 50%, 
+    transparent 100%);
+}
+
+.featured-pairings::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #1db954 50%, 
+    transparent 100%);
+}
+
+.featured-pairings::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(29, 185, 84, 0.3) 50%, 
+    transparent 100%);
+}
+
+.section-header {
+  max-width: 720px;
+  margin: 0 auto 50px;
+  text-align: center;
+  position: relative;
+}
+
+.section-header::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -30px;
+  width: 60px;
+  height: 3px;
+  background: var(--brand-green);
+  border-radius: 2px;
+}
+
+.section-header h2 {
+  margin: 0 0 12px;
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.section-header p {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-subtle);
+}
+
+.pairings-grid {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.pairing-card {
+  background: #282828;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  position: relative;
 }
 
-.recipe-detail-image {
-  width: 60%;
-  max-width: 520px;
-  border-radius: var(--radius-lg);
-  margin-top: 12px;
-  box-shadow: var(--shadow-soft);
+.pairing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, 
+    rgba(29, 185, 84, 0.08) 0%, 
+    transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.recipe-summary {
-  margin-top: 18px;
-  color: #000;
-  max-width: 640px;
-  margin-left: auto;
-  margin-right: auto;
+.pairing-card:hover::before {
+  opacity: 1;
+}
+
+.pairing-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  background: #3e3e3e;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7),
+              0 0 60px rgba(29, 185, 84, 0.15);
+}
+
+.pairing-image-wrap {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.pairing-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.pairing-card:hover .pairing-image {
+  transform: scale(1.05);
+}
+
+.pairing-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pairing-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.pairing-body h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.pairing-desc {
+  margin: 0;
   font-size: 14px;
+  color: var(--text-subtle);
+  line-height: 1.5;
 }
 
-.ingredients-list,
-.instructions {
-  color: #000;
+.pairing-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
   font-size: 13px;
+  color: var(--text-muted);
 }
 
-/* ============ Footer ============ */
+.pairing-footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
 
+.cook-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(29, 185, 84, 0.9);
+  color: #000000;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cook-btn:hover {
+  background: var(--brand-green);
+  transform: translateX(2px);
+}
+
+/* Explore all recipes button */
+.outline-dark-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto 0;
+  padding: 14px 40px;
+  border-radius: 12px;
+  border: 2px solid rgba(29, 185, 84, 0.3);
+  background: transparent;
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.outline-dark-btn:hover {
+  border-color: var(--brand-green);
+  background: rgba(29, 185, 84, 0.1);
+  transform: translateY(-2px);
+}
+
+/* ============= Stay In Tune Section ============= */
+.stay-in-tune {
+  padding: 100px 20px;
+  background: radial-gradient(circle at center, #191414 0%, #000000 100%);
+  margin-top: 0;
+  position: relative;
+}
+
+.stay-in-tune::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    #1db954 50%, 
+    transparent 100%);
+}
+
+.stay-in-tune::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(29, 185, 84, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.stay-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.stay-inner h2 {
+  margin: 0 0 12px;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.stay-inner p {
+  margin: 0 0 32px;
+  font-size: 18px;
+  color: var(--text-subtle);
+}
+
+.stay-form {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stay-form input {
+  padding: 14px 24px;
+  min-width: 300px;
+  border-radius: 10px;
+  border: 1px solid #3e3e3e;
+  background: #282828;
+  color: var(--text-main);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.stay-form input::placeholder {
+  color: #7f7f7f;
+}
+
+.stay-form input:focus {
+  border-color: var(--brand-green);
+  background: #3e3e3e;
+  box-shadow: 0 0 0 2px rgba(29, 185, 84, 0.2);
+}
+
+.subscribe-btn {
+  padding: 14px 32px;
+  border-radius: 10px;
+  border: none;
+  background: var(--brand-green);
+  color: #000000;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.subscribe-btn:hover {
+  background: var(--brand-green-hover);
+  transform: translateY(-2px);
+}
+
+/* ============= Footer ============= */
 .footer {
-  background: linear-gradient(90deg, #d5d0c6, #b3aea3);
-  color: #000;
-  padding: 26px 20px 18px;
-  margin-top: auto;
+  background: #000000;
+  color: #b3b3b3;
+  padding: 40px 24px 20px;
+  border-top: 1px solid #282828;
 }
 
 .footer-inner {
-  max-width: 1100px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 0 auto 20px;
   display: flex;
   justify-content: space-between;
-  gap: 28px;
+  gap: 40px;
   flex-wrap: wrap;
 }
 
 .footer-logo {
-  font-weight: 600;
-  font-family: var(--font-serif);
-  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.footer-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 .footer-cols {
   display: flex;
-  gap: 38px;
-  font-size: 12px;
-  color: #000;
+  gap: 60px;
+  font-size: 14px;
+}
+
+.footer-cols h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.footer-cols p {
+  margin: 6px 0;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.footer-cols p:hover {
+  color: var(--text-subtle);
+}
+
+.footer-icons {
+  display: flex;
+  gap: 16px;
+  font-size: 20px;
+}
+
+.footer-icons span {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-icons span:hover {
+  color: var(--brand-green);
 }
 
 .footer-copy {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: var(--text-muted);
   text-align: center;
-  margin-top: 14px;
-  font-size: 10px;
-  color: #000;
 }
 
+/* ============= Explore Recipes Page - Exact Match ============= */
+.explore-recipes-page {
+  min-height: 100vh;
+  background: #000000;
+  padding: 60px 20px;
+}
+
+.explore-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.explore-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.explore-title {
+  font-size: 56px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #ffffff;
+}
+
+.title-green {
+  color: #1db954;
+}
+
+.explore-subtitle {
+  font-size: 18px;
+  color: #b3b3b3;
+  margin: 0 0 40px;
+}
+
+/* Search Bar */
+.explore-search-form {
+  max-width: 700px;
+  margin: 0 auto 60px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  opacity: 0.5;
+}
+
+.explore-search-input {
+  width: 100%;
+  padding: 18px 20px 18px 55px;
+  font-size: 16px;
+  border: none;
+  border-radius: 30px;
+  background: #282828;
+  color: #ffffff;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.explore-search-input::placeholder {
+  color: #7f7f7f;
+}
+
+.explore-search-input:focus {
+  background: #3e3e3e;
+  box-shadow: 0 0 0 2px #1db954;
+}
+
+/* Recipes Grid */
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.recipe-card {
+  background: #181818;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.recipe-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+}
+
+.recipe-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.recipe-card:hover .recipe-image {
+  transform: scale(1.05);
+}
+
+.recipe-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.8));
+  pointer-events: none;
+}
+
+.recipe-content {
+  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.95));
+}
+
+.recipe-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.recipe-meta {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  color: #b3b3b3;
+}
+
+.recipe-time,
+.recipe-servings {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-icon {
+  opacity: 0.8;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px;
+  font-size: 18px;
+  color: #b3b3b3;
+}
+
+/* ============= Favorites/My Playlist Page - Exact Match ============= */
+.favorites-page {
+  min-height: 100vh;
+  background: #000000;
+  padding: 60px 20px;
+}
+
+.favorites-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.favorites-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.header-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.favorites-title {
+  font-size: 52px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #ffffff;
+}
+
+.favorites-subtitle {
+  font-size: 18px;
+  color: #7f7f7f;
+  margin: 0;
+}
+
+/* Spotify Connect Card */
+.spotify-connect-section {
+  margin-bottom: 60px;
+}
+
+.spotify-connect-card {
+  background: #181818;
+  border-radius: 16px;
+  padding: 60px 40px;
+  text-align: center;
+  max-width: 1300px;
+  margin: 0 auto;
+  border: 1px solid #282828;
+}
+
+.spotify-icon-large {
+  width: 80px;
+  height: 80px;
+  background: rgba(29, 185, 84, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin: 0 auto 24px;
+}
+
+.connect-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.connect-description {
+  font-size: 16px;
+  color: #7f7f7f;
+  margin: 0 0 32px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.spotify-connect-btn {
+  background: #1db954;
+  color: #000000;
+  border: none;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spotify-connect-btn:hover {
+  background: #1ed760;
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+/* Recipe-Song Pairings */
+.pairings-section {
+  margin-top: 60px;
+}
+
+.pairings-heading {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 30px;
+}
+
+.pairings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pairing-card {
+  background: #181818;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.pairing-card:hover {
+  background: #282828;
+}
+
+.pairing-card.active {
+  border-color: #1db954;
+  background: #1a1a1a;
+}
+
+.pairing-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.pairing-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.pairing-info {
+  flex: 1;
+}
+
+.pairing-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.pairing-songs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.song-item {
+  font-size: 14px;
+  color: #7f7f7f;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.song-icon {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.pairing-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid #3e3e3e;
+  color: #b3b3b3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #282828;
+  border-color: #1db954;
+  color: #ffffff;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .recipes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .explore-title {
+    font-size: 48px;
+  }
+  
+  .favorites-title {
+    font-size: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  .recipes-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .explore-title {
+    font-size: 40px;
+  }
+  
+  .favorites-title {
+    font-size: 36px;
+  }
+  
+  .pairing-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .pairing-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .pairing-actions {
+    margin-top: 16px;
+    align-self: flex-end;
+  }
+}
+
+/* ============= Other Pages (keeping essential styles) ============= */
+.recipes-page,
+.recipe-page,
+.custom-page,
+.playlist-page {
+  padding: 80px 20px;
+  background: var(--page-bg);
+}
+
+.recipes-page-inner,
+.recipe-page-inner,
+.custom-page-inner,
+.playlist-page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============= Responsive Breakpoints ============= */
+@media (max-width: 1024px) {
+  .hero-title-large {
+    font-size: 72px;
+  }
+  
+  .benefits-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .pairings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-inner {
+    padding-inline: 20px;
+  }
+  
+  .nav-links {
+    gap: 20px;
+  }
+  
+  .spotify-btn {
+    display: none;
+  }
+  
+  .hero-title-large {
+    font-size: 56px;
+  }
+  
+  .hero-subtext-large {
+    font-size: 18px;
+  }
+  
+  .hero-icons {
+    gap: 24px;
+  }
+  
+  .hero-icon-glow {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+  
+  .benefits-grid,
+  .pairings-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+  }
+  
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding-top: 60px;
+  }
+  
+  .hero-title-large {
+    font-size: 42px;
+  }
+  
+  .hero-subtext-large {
+    font-size: 16px;
+  }
+  
+  .section-header h2 {
+    font-size: 32px;
+  }
+  
+  .stay-form input {
+    min-width: 100%;
+  }
+}
+
+/* ============= Recipe Details Page ============= */
+
+.recipe-page {
+  min-height: 100vh;
+  background: #000000;
+  padding: 50px 20px 80px;
+  color: var(--text-main);
+}
+
+.recipe-page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-subtle);
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 4px 0;
+}
+
+.back-btn:hover {
+  color: var(--text-main);
+}
+
+/* Header */
+
+.recipe-header {
+  margin-bottom: 32px;
+}
+
+.recipe-title-main {
+  font-size: 44px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.recipe-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.recipe-meta-pill {
+  font-size: 14px;
+  color: var(--text-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recipe-description {
+  max-width: 800px;
+  font-size: 16px;
+  color: var(--text-subtle);
+  line-height: 1.6;
+}
+
+/* Layout */
+
+.recipe-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+  gap: 24px;
+}
+
+.recipe-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.recipe-side-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Generic card */
+
+.recipe-card {
+  background: #181818;
+  border-radius: 18px;
+  padding: 24px 28px;
+  border: 1px solid #262626;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+}
+
+.recipe-image-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.recipe-main-img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+/* Section headings */
+
+.recipe-section-heading {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 18px;
+}
+
+/* Ingredients */
+
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.ingredient-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--brand-green);
+  margin-top: 7px;
+}
+
+/* Instructions */
+
+.instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.instruction-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--brand-green);
+  color: #000;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.instruction-text {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* Music pairing column */
+
+.music-card {
+  min-height: 100%;
+}
+
+.music-card-header {
+  margin-bottom: 20px;
+}
+
+.music-icon {
+  margin-right: 6px;
+}
+
+.music-subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-subtle);
+}
+
+.music-track-card {
+  background: #202020;
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  margin-bottom: 16px;
+  border: 1px solid #2c2c2c;
+}
+
+.music-track-card.small {
+  padding: 12px 14px;
+}
+
+.music-track-info {
+  margin-bottom: 8px;
+}
+
+.music-track-title {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.music-track-artist {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-subtle);
+}
+
+.song-embed {
+  border-radius: 10px;
+}
+
+/* Playlist + button */
+
+.music-playlist-list {
+  margin-top: 8px;
+}
+
+.music-actions {
+  margin-top: 20px;
+}
+
+.music-primary-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand-green);
+  color: #000000;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.music-primary-btn:hover {
+  background: var(--brand-green-hover);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .recipe-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-main-img {
+    height: 220px;
+  }
+}

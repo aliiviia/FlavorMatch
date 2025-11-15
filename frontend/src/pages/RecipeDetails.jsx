@@ -1,9 +1,11 @@
+// src/pages/RecipeDetails.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-function RecipeDetails() {
+export default function RecipeDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [recipeInfo, setRecipeInfo] = useState(null);
   const [songData, setSongData] = useState(null);
   const [playlist, setPlaylist] = useState([]);
@@ -13,183 +15,245 @@ function RecipeDetails() {
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        // Fetch recipe info from spoonacular
-        const recipeRes = await fetch(`http://localhost:5001/api/recipeInfo?id=${id}`);
+        // Fetch recipe info from backend (Spoonacular wrapper)
+        const recipeRes = await fetch(
+          `http://localhost:5001/api/recipeInfo?id=${id}`
+        );
         const recipe = await recipeRes.json();
         setRecipeInfo(recipe);
 
-        // Fetch song and potential playlist preview from spotify
+        // Fetch Spotify track + playlist based on recipe title
         const songRes = await fetch(
-          `http://localhost:5001/api/songForRecipe?recipe=${encodeURIComponent(recipe.title)}`
+          `http://localhost:5001/api/songForRecipe?recipe=${encodeURIComponent(
+            recipe.title
+          )}`
         );
         const song = await songRes.json();
         setSongData(song);
-
-        setLoading(false);
       } catch (err) {
         console.error("Error fetching recipe details:", err);
+      } finally {
         setLoading(false);
       }
     };
+
     fetchDetails();
   }, [id]);
 
   const getTrackEmbedUrl = (url) => {
-    const trackId = url.split("/track/")[1];
-    return `https://open.spotify.com/embed/track/${trackId}`;
+    if (!url) return null;
+    const parts = url.split("/track/");
+    if (parts.length < 2) return null;
+    const rest = parts[1].split("?")[0];
+    return `https://open.spotify.com/embed/track/${rest}`;
   };
 
-  const handleMakePlaylist = async () => {
+  const handleMakePlaylist = () => {
     if (songData?.playlist?.length) {
-      setPlaylist(songData.playlist.slice(0, 10)); //display the top 10 songs as a playlist
+      setPlaylist(songData.playlist.slice(0, 10));
       setShowPlaylist(true);
     } else {
       alert("No playlist found.");
     }
   };
 
-  if (loading) return <p>Loading recipe...</p>;
-  if (!recipeInfo) return <p>Recipe not found.</p>;
+  if (loading) {
+    return (
+      <main className="recipe-page">
+        <div className="recipe-page-inner">
+          <p className="recipe-loading">Loading recipe...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!recipeInfo) {
+    return (
+      <main className="recipe-page">
+        <div className="recipe-page-inner">
+          <p className="recipe-loading">Recipe not found.</p>
+        </div>
+      </main>
+    );
+  }
+
+  const trackEmbedUrl = songData?.randomTrack
+    ? getTrackEmbedUrl(songData.randomTrack.url)
+    : null;
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            backgroundColor: "transparent",
-            color: "#1db954",
-            border: "1px solid #1db954",
-            borderRadius: "6px",
-            padding: "6px 10px",
-            marginBottom: "20px",
-            cursor: "pointer",
-          }}
-        >
-          ← Back to Results
+    <main className="recipe-page">
+      <div className="recipe-page-inner">
+        {/* Top bar */}
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          ← Back to recipes
         </button>
 
-        <h2>{recipeInfo.title}</h2>
+        {/* Header section: title + meta + summary */}
+        <header className="recipe-header">
+          <h1 className="recipe-title-main">{recipeInfo.title}</h1>
 
-        <img
-          src={recipeInfo.image}
-          alt={recipeInfo.title}
-          style={{ width: "60%", borderRadius: "12px", marginTop: "10px" }}
-        />
-
-        <div
-          dangerouslySetInnerHTML={{ __html: recipeInfo.summary }}
-          style={{ marginTop: "15px", color: "#ccc", maxWidth: "600px" }}
-        />
-
-        <h3 style={{ marginTop: "20px" }}>Ingredients:</h3>
-        <ul style={{ textAlign: "left", maxWidth: "500px", margin: "0 auto" }}>
-          {recipeInfo.extendedIngredients?.map((i, index) => (
-            <li key={index}>{i}</li>
-          ))}
-        </ul>
-
-        <h3 style={{ marginTop: "20px" }}>Instructions:</h3>
-        <p style={{ maxWidth: "600px" }}>
-          {recipeInfo.instructions || "No instructions provided."}
-        </p>
-
-        {/* 🎶 Matching Song */}
-        {songData && songData.randomTrack && (
-          <div style={{ marginTop: "30px" }}>
-            <h3>
-              Matching Song:{" "}
-              <span style={{ color: "#1db954" }}>
-                {songData.randomTrack.name}
+          <div className="recipe-meta-row">
+            {recipeInfo.readyInMinutes && (
+              <span className="recipe-meta-pill">
+                ⏱ {recipeInfo.readyInMinutes} minutes
               </span>
-            </h3>
-            <p>By {songData.randomTrack.artists.join(", ")}</p>
-
-            {/* Single song embed */}
-            <iframe
-              src={getTrackEmbedUrl(songData.randomTrack.url)}
-              width="320"
-              height="80"
-              frameBorder="0"
-              allow="encrypted-media"
-              title="Spotify Player"
-              style={{
-                marginTop: "10px",
-                borderRadius: "12px",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-              }}
-            ></iframe>
-
-            {/* 🟢 Make Playlist Button */}
-            <button
-              onClick={handleMakePlaylist}
-              style={{
-                marginTop: "20px",
-                backgroundColor: "#1db954",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                padding: "10px 16px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-            >
-              🎧 Make Playlist
-            </button>
-
-            {/* Display the playlist when "make playlist" is clicked  */}
-            {showPlaylist && playlist.length > 0 && (
-              <div
-                style={{
-                  marginTop: "30px",
-                  backgroundColor: "rgba(255,255,255,0.05)",
-                  borderRadius: "12px",
-                  padding: "15px",
-                  width: "350px",
-                  textAlign: "center",
-                }}
-              >
-                <h3 style={{ color: "#1db954" }}>Top 10 Playlist</h3>
-                {playlist.map((track, index) => {
-                  const trackId = track.url.split("/track/")[1];
-                  if (!trackId) return null;
-                  return (
-                    <div
-                      key={index}
-                      style={{
-                        marginTop: "10px",
-                        paddingBottom: "10px",
-                        borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      }}
-                    >
-                      <p style={{ margin: "6px 0", color: "#fff" }}>
-                        <strong>{track.name}</strong>
-                        <br />
-                        <span style={{ color: "#aaa" }}>
-                          {track.artists.join(", ")}
-                        </span>
-                      </p>
-                      <iframe
-                        src={`https://open.spotify.com/embed/track/${trackId}`}
-                        width="300"
-                        height="80"
-                        allow="encrypted-media"
-                        title={`track-${index}`}
-                        style={{
-                          borderRadius: "12px",
-                          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-                        }}
-                      ></iframe>
-                    </div>
-                  );
-                })}
-              </div>
+            )}
+            {recipeInfo.servings && (
+              <span className="recipe-meta-pill">
+                👥 {recipeInfo.servings} servings
+              </span>
             )}
           </div>
-        )}
-      </header>
-    </div>
+
+          {recipeInfo.summary && (
+            <div
+              className="recipe-description"
+              dangerouslySetInnerHTML={{ __html: recipeInfo.summary }}
+            />
+          )}
+        </header>
+
+        {/* Main 2-column layout */}
+        <section className="recipe-layout">
+          {/* LEFT COLUMN: image + ingredients + instructions */}
+          <div className="recipe-main-column">
+            {/* Big image card */}
+            <article className="recipe-card recipe-image-card">
+              <img
+                src={recipeInfo.image}
+                alt={recipeInfo.title}
+                className="recipe-main-img"
+              />
+            </article>
+
+            {/* Ingredients card */}
+            <article className="recipe-card">
+              <h2 className="recipe-section-heading">Ingredients</h2>
+              <ul className="ingredients-list">
+                {recipeInfo.extendedIngredients?.map((i, index) => {
+                  const text =
+                    typeof i === "string"
+                      ? i
+                      : i.original || i.name || JSON.stringify(i);
+                  return (
+                    <li key={index} className="ingredient-item">
+                      <span className="ingredient-dot" />
+                      <span>{text}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </article>
+
+            {/* Instructions card */}
+            <article className="recipe-card">
+              <h2 className="recipe-section-heading">Instructions</h2>
+              {recipeInfo.instructions ? (
+                <ol className="instructions-list">
+                  {recipeInfo.instructions
+                    .split(/\r?\n/)
+                    .map((step) => step.trim())
+                    .filter(Boolean)
+                    .map((step, index) => (
+                      <li key={index} className="instruction-item">
+                        <span className="instruction-number">
+                          {index + 1}
+                        </span>
+                        <p className="instruction-text">{step}</p>
+                      </li>
+                    ))}
+                </ol>
+              ) : (
+                <p className="instructions-text">
+                  No instructions provided for this recipe.
+                </p>
+              )}
+            </article>
+          </div>
+
+          {/* RIGHT COLUMN: music pairing card */}
+          <aside className="recipe-side-column">
+            <article className="recipe-card music-card">
+              <div className="music-card-header">
+                <h2 className="recipe-section-heading">
+                  <span className="music-icon">🎵</span> Music Pairing
+                </h2>
+                <p className="music-subtitle">
+                  The perfect soundtrack for cooking this recipe.
+                </p>
+              </div>
+
+              {/* Main matching track */}
+              {songData?.randomTrack && (
+                <div className="music-track-card">
+                  <div className="music-track-info">
+                    <p className="music-track-title">
+                      {songData.randomTrack.name}
+                    </p>
+                    <p className="music-track-artist">
+                      {songData.randomTrack.artists.join(", ")}
+                    </p>
+                  </div>
+
+                  {trackEmbedUrl && (
+                    <iframe
+                      src={trackEmbedUrl}
+                      width="100%"
+                      height="80"
+                      frameBorder="0"
+                      allow="encrypted-media"
+                      title="Spotify Player"
+                      className="song-embed"
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* Playlist preview (list of tracks) */}
+              {showPlaylist && playlist.length > 0 && (
+                <div className="music-playlist-list">
+                  {playlist.map((track, index) => {
+                    const parts = track.url.split("/track/");
+                    if (parts.length < 2) return null;
+                    const trackId = parts[1].split("?")[0];
+
+                    return (
+                      <div key={index} className="music-track-card small">
+                        <div className="music-track-info">
+                          <p className="music-track-title">{track.name}</p>
+                          <p className="music-track-artist">
+                            {track.artists.join(", ")}
+                          </p>
+                        </div>
+                        <iframe
+                          src={`https://open.spotify.com/embed/track/${trackId}`}
+                          width="100%"
+                          height="64"
+                          allow="encrypted-media"
+                          title={`track-${index}`}
+                          className="song-embed"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="music-actions">
+                <button
+                  type="button"
+                  className="music-primary-btn"
+                  onClick={handleMakePlaylist}
+                >
+                  🎧 Add All to Playlist
+                </button>
+              </div>
+            </article>
+          </aside>
+        </section>
+      </div>
+    </main>
   );
 }
-
-export default RecipeDetails;

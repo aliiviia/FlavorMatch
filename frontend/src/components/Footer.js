@@ -19,6 +19,16 @@ export default function Footer() {
             <p>Genres</p>
             <p>Artists</p>
           </div>
+
+          <div>
+            <h4>Connect</h4>
+            <div className="footer-icons">
+              <span>📸</span>
+              <span>🐦</span>
+              <span>▶️</span>
+            </div>
+          </div>
+          
         </div>
       </div>
       <p className="footer-copy">© 2025 FlavorMatch. All rights reserved.</p>
