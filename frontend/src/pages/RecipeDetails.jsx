@@ -42,7 +42,6 @@ export default function RecipeDetails() {
 
   const getTrackEmbedUrl = (url) => {
     if (!url) return null;
-    // Handle URLs like https://open.spotify.com/track/ID?si=...
     const parts = url.split("/track/");
     if (parts.length < 2) return null;
     const rest = parts[1].split("?")[0];
@@ -51,7 +50,7 @@ export default function RecipeDetails() {
 
   const handleMakePlaylist = () => {
     if (songData?.playlist?.length) {
-      setPlaylist(songData.playlist.slice(0, 10)); // show top 10
+      setPlaylist(songData.playlist.slice(0, 10));
       setShowPlaylist(true);
     } else {
       alert("No playlist found.");
@@ -61,7 +60,9 @@ export default function RecipeDetails() {
   if (loading) {
     return (
       <main className="recipe-page">
-        <p className="recipe-loading">Loading recipe...</p>
+        <div className="recipe-page-inner">
+          <p className="recipe-loading">Loading recipe...</p>
+        </div>
       </main>
     );
   }
@@ -69,7 +70,9 @@ export default function RecipeDetails() {
   if (!recipeInfo) {
     return (
       <main className="recipe-page">
-        <p className="recipe-loading">Recipe not found.</p>
+        <div className="recipe-page-inner">
+          <p className="recipe-loading">Recipe not found.</p>
+        </div>
       </main>
     );
   }
@@ -81,120 +84,152 @@ export default function RecipeDetails() {
   return (
     <main className="recipe-page">
       <div className="recipe-page-inner">
-        {/* Back button */}
+        {/* Top bar */}
         <button className="back-btn" onClick={() => navigate(-1)}>
-          ← Back to results
+          ← Back to recipes
         </button>
 
-        {/* Top layout: image + main info */}
-        <section className="recipe-hero-row">
-          <div className="recipe-image-wrap">
-            <img
-              src={recipeInfo.image}
-              alt={recipeInfo.title}
-              className="recipe-main-img"
-            />
-          </div>
+        {/* Header section: title + meta + summary */}
+        <header className="recipe-header">
+          <h1 className="recipe-title-main">{recipeInfo.title}</h1>
 
-          <div className="recipe-main-info">
-            <h1 className="recipe-title">{recipeInfo.title}</h1>
-
+          <div className="recipe-meta-row">
             {recipeInfo.readyInMinutes && (
-              <p className="recipe-meta">
-                ⏱ Ready in {recipeInfo.readyInMinutes} minutes
-              </p>
+              <span className="recipe-meta-pill">
+                ⏱ {recipeInfo.readyInMinutes} minutes
+              </span>
             )}
+            {recipeInfo.servings && (
+              <span className="recipe-meta-pill">
+                👥 {recipeInfo.servings} servings
+              </span>
+            )}
+          </div>
 
-            {/* Summary from Spoonacular (HTML) */}
-            {recipeInfo.summary && (
-              <div
-                className="recipe-summary"
-                dangerouslySetInnerHTML={{ __html: recipeInfo.summary }}
+          {recipeInfo.summary && (
+            <div
+              className="recipe-description"
+              dangerouslySetInnerHTML={{ __html: recipeInfo.summary }}
+            />
+          )}
+        </header>
+
+        {/* Main 2-column layout */}
+        <section className="recipe-layout">
+          {/* LEFT COLUMN: image + ingredients + instructions */}
+          <div className="recipe-main-column">
+            {/* Big image card */}
+            <article className="recipe-card recipe-image-card">
+              <img
+                src={recipeInfo.image}
+                alt={recipeInfo.title}
+                className="recipe-main-img"
               />
-            )}
+            </article>
 
-            {/* Matching song block */}
-            {songData && songData.randomTrack && (
-              <div className="recipe-song-card">
-                <h2 className="song-heading">
-                  Matching Song:{" "}
-                  <span className="song-title">
-                    {songData.randomTrack.name}
-                  </span>
-                </h2>
-                <p className="song-artists">
-                  By {songData.randomTrack.artists.join(", ")}
+            {/* Ingredients card */}
+            <article className="recipe-card">
+              <h2 className="recipe-section-heading">Ingredients</h2>
+              <ul className="ingredients-list">
+                {recipeInfo.extendedIngredients?.map((i, index) => {
+                  const text =
+                    typeof i === "string"
+                      ? i
+                      : i.original || i.name || JSON.stringify(i);
+                  return (
+                    <li key={index} className="ingredient-item">
+                      <span className="ingredient-dot" />
+                      <span>{text}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </article>
+
+            {/* Instructions card */}
+            <article className="recipe-card">
+              <h2 className="recipe-section-heading">Instructions</h2>
+              {recipeInfo.instructions ? (
+                <ol className="instructions-list">
+                  {recipeInfo.instructions
+                    .split(/\r?\n/)
+                    .map((step) => step.trim())
+                    .filter(Boolean)
+                    .map((step, index) => (
+                      <li key={index} className="instruction-item">
+                        <span className="instruction-number">
+                          {index + 1}
+                        </span>
+                        <p className="instruction-text">{step}</p>
+                      </li>
+                    ))}
+                </ol>
+              ) : (
+                <p className="instructions-text">
+                  No instructions provided for this recipe.
                 </p>
+              )}
+            </article>
+          </div>
 
-                {trackEmbedUrl && (
-                  <iframe
-                    src={trackEmbedUrl}
-                    width="100%"
-                    height="80"
-                    frameBorder="0"
-                    allow="encrypted-media"
-                    title="Spotify Player"
-                    className="song-embed"
-                  />
-                )}
-
-                <button
-                  type="button"
-                  className="playlist-btn"
-                  onClick={handleMakePlaylist}
-                >
-                  🎧 Make Playlist
-                </button>
+          {/* RIGHT COLUMN: music pairing card */}
+          <aside className="recipe-side-column">
+            <article className="recipe-card music-card">
+              <div className="music-card-header">
+                <h2 className="recipe-section-heading">
+                  <span className="music-icon">🎵</span> Music Pairing
+                </h2>
+                <p className="music-subtitle">
+                  The perfect soundtrack for cooking this recipe.
+                </p>
               </div>
-            )}
-          </div>
-        </section>
 
-        {/* Ingredients + instructions + playlist */}
-        <section className="recipe-details-grid">
-          <div className="recipe-column">
-            <h2 className="recipe-section-heading">Ingredients</h2>
-            <ul className="ingredients-list">
-              {recipeInfo.extendedIngredients?.map((i, index) => {
-                // Spoonacular usually returns objects; fall back if it's already a string
-                const text =
-                  typeof i === "string"
-                    ? i
-                    : i.original || i.name || JSON.stringify(i);
-                return <li key={index}>{text}</li>;
-              })}
-            </ul>
-          </div>
+              {/* Main matching track */}
+              {songData?.randomTrack && (
+                <div className="music-track-card">
+                  <div className="music-track-info">
+                    <p className="music-track-title">
+                      {songData.randomTrack.name}
+                    </p>
+                    <p className="music-track-artist">
+                      {songData.randomTrack.artists.join(", ")}
+                    </p>
+                  </div>
 
-          <div className="recipe-column">
-            <h2 className="recipe-section-heading">Instructions</h2>
-            {recipeInfo.instructions ? (
-              <p className="instructions-text">{recipeInfo.instructions}</p>
-            ) : (
-              <p className="instructions-text">No instructions provided.</p>
-            )}
+                  {trackEmbedUrl && (
+                    <iframe
+                      src={trackEmbedUrl}
+                      width="100%"
+                      height="80"
+                      frameBorder="0"
+                      allow="encrypted-media"
+                      title="Spotify Player"
+                      className="song-embed"
+                    />
+                  )}
+                </div>
+              )}
 
-            {/* Playlist area */}
-            {showPlaylist && playlist.length > 0 && (
-              <div className="playlist-panel">
-                <h2 className="recipe-section-heading">Top 10 Playlist</h2>
-                <div className="playlist-list">
+              {/* Playlist preview (list of tracks) */}
+              {showPlaylist && playlist.length > 0 && (
+                <div className="music-playlist-list">
                   {playlist.map((track, index) => {
                     const parts = track.url.split("/track/");
                     if (parts.length < 2) return null;
                     const trackId = parts[1].split("?")[0];
 
                     return (
-                      <div key={index} className="playlist-item">
-                        <p className="playlist-track-text">
-                          <strong>{track.name}</strong>
-                          <br />
-                          <span>{track.artists.join(", ")}</span>
-                        </p>
+                      <div key={index} className="music-track-card small">
+                        <div className="music-track-info">
+                          <p className="music-track-title">{track.name}</p>
+                          <p className="music-track-artist">
+                            {track.artists.join(", ")}
+                          </p>
+                        </div>
                         <iframe
                           src={`https://open.spotify.com/embed/track/${trackId}`}
                           width="100%"
-                          height="80"
+                          height="64"
                           allow="encrypted-media"
                           title={`track-${index}`}
                           className="song-embed"
@@ -203,9 +238,20 @@ export default function RecipeDetails() {
                     );
                   })}
                 </div>
+              )}
+
+              {/* Actions */}
+              <div className="music-actions">
+                <button
+                  type="button"
+                  className="music-primary-btn"
+                  onClick={handleMakePlaylist}
+                >
+                  🎧 Add All to Playlist
+                </button>
               </div>
-            )}
-          </div>
+            </article>
+          </aside>
         </section>
       </div>
     </main>
