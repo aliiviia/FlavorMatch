@@ -7,18 +7,29 @@ export default function AppLayout() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("spotify_token");
+    const params = new URLSearchParams(window.location.search);
+    const tokenFromURL = params.get("token");
 
-    if (token) {
-      fetch(`http://localhost:5001/me?token=${token}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setUser(data); // store Spotify user info here
-        })
-        .catch((err) => {
-          console.error("Could not load Spotify user:", err);
-        });
+    if (tokenFromURL) {
+      localStorage.setItem("spotify_token", tokenFromURL);
+      window.history.replaceState({}, document.title, "/"); // Clean URL
     }
+
+    const token = tokenFromURL || localStorage.getItem("spotify_token");
+    if (!token) return;
+
+    //  Fetch Spotify profile from your backend
+    fetch(`http://localhost:5001/me?token=${token}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setUser({
+          display_name: data.display_name,
+          image: data.images?.[0]?.url,  // Gets spotify users  profile photo
+        });
+      })
+      .catch((err) => {
+        console.error("Could not load Spotify user:", err);
+      });
   }, []);
 
   return (
