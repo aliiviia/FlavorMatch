@@ -99,7 +99,7 @@ a {
 
 .nav-links {
   display: flex;
-  gap: 40px;
+  gap: 16px;
   align-items: center;
 }
 
@@ -140,6 +140,68 @@ a {
   background: var(--brand-green-hover);
   transform: translateY(-1px);
 }
+/*USER PROFILE CODE */
+/* Profile Wrapper */
+.spotify-profile-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Avatar */
+.spotify-profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #1db954;
+  transition: transform 0.2s ease;
+}
+
+.spotify-profile-img:hover {
+  transform: scale(1.05);
+}
+
+/* Dropdown Base */
+.spotify-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  background: #121212;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Dropdown Open Animation */
+.spotify-dropdown.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Logout Button */
+.spotify-dropdown button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 6px 10px;
+  width: 100%;
+  text-align: left;
+}
+
+.spotify-dropdown button:hover {
+  color: #1db954;
+}
+
 
 /* ============= HERO – Exact match to screenshot 1 ============= */
 .hero {
@@ -1565,63 +1627,6 @@ a {
   .recipe-main-img {
     height: 220px;
   }
-}
-
-/* Spotify profile avatar container */
-.spotify-profile-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 12px;
-}
-
-/* Avatar image */
-.spotify-profile-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  border: 2px solid #1db954;
-  transition: transform 0.2s ease;
-}
-
-.spotify-profile-img:hover {
-  transform: scale(1.05);
-}
-
-/* Dropdown menu */
-.spotify-dropdown {
-  display: none;
-  position: absolute;
-  top: 50px;
-  right: 0;
-  background: #121212;
-  padding: 10px 14px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  z-index: 100;
-  white-space: nowrap;
-}
-
-/* Show dropdown on hover */
-.spotify-profile-wrapper:hover .spotify-dropdown {
-  display: block;
-}
-
-/* Logout button */
-.spotify-dropdown button {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 15px;
-  padding: 4px 8px;
-}
-
-.spotify-dropdown button:hover {
-  color: #1db954;
 }
 
 

@@ -1,8 +1,24 @@
 import { NavLink } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
 
 export default function Navbar({ user }) {
-  const linkBase = "nav-link";
-  const active = "nav-link active";
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="nav">
@@ -13,44 +29,39 @@ export default function Navbar({ user }) {
         </NavLink>
 
         <nav className="nav-links">
-          <NavLink
-            to="/"
-            className={({ isActive }) => (isActive ? active : linkBase)}
-          >
+
+          {/* Your nav links here */}
+          <NavLink to="/" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Home
           </NavLink>
 
-          <NavLink
-            to="/recipes"
-            className={({ isActive }) => (isActive ? active : linkBase)}
-          >
+          <NavLink to="/recipes" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Explore Recipes
           </NavLink>
 
-          <NavLink
-            to="/favorites"
-            className={({ isActive }) => (isActive ? active : linkBase)}
-          >
+          <NavLink to="/favorites" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Favorites
           </NavLink>
 
-          <NavLink
-            to="/custom"
-            className={({ isActive }) => (isActive ? active : linkBase)}
-          >
+          <NavLink to="/custom" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Custom Recipe
           </NavLink>
 
-          {/* Spotify Login OR Profile */}
+          {/* Spotify Profile Dropdown */}
           {user ? (
-            <div className="spotify-profile-wrapper">
+            <div
+              className="spotify-profile-wrapper"
+              onClick={() => setOpen((prev) => !prev)}
+              ref={dropdownRef}
+            >
               <img
                 src={user.image}
                 alt="Spotify Profile"
                 className="spotify-profile-img"
               />
 
-              <div className="spotify-dropdown">
+              {/* Dropdown */}
+              <div className={`spotify-dropdown ${open ? "open" : ""}`}>
                 <button
                   onClick={() => {
                     localStorage.removeItem("spotify_token");
@@ -65,7 +76,7 @@ export default function Navbar({ user }) {
             <button
               className="spotify-btn"
               onClick={() => {
-                 window.location.href = "http://127.0.0.1:5001/login";
+                window.location.href = "http://127.0.0.1:5001/login";
               }}
             >
               Connect Spotify
