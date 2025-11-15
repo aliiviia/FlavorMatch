@@ -41,14 +41,31 @@ export default function Navbar({ user }) {
             Custom Recipe
           </NavLink>
 
-          {/* Login or User Greeting */}
+          {/* Spotify Login OR Profile */}
           {user ? (
-            <span className="nav-user">Welcome, {user.display_name}</span>
+            <div className="spotify-profile-wrapper">
+              <img
+                src={user.image}
+                alt="Spotify Profile"
+                className="spotify-profile-img"
+              />
+
+              <div className="spotify-dropdown">
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("spotify_token");
+                    window.location.reload();
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
           ) : (
             <button
               className="spotify-btn"
               onClick={() => {
-                window.location.href = "http://localhost:5001/login";
+                 window.location.href = "http://127.0.0.1:5001/login";
               }}
             >
               Connect Spotify
