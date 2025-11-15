@@ -152,7 +152,7 @@ export default function RecipeDetails() {
               {recipeInfo.instructions ? (
                 <ol className="instructions-list">
                   {recipeInfo.instructions
-                    .split(/\r?\n/)
+                    .split(/\. +/) 
                     .map((step) => step.trim())
                     .filter(Boolean)
                     .map((step, index) => (

@@ -879,6 +879,34 @@ a {
 .search-input-wrapper {
   position: relative;
   width: 100%;
+  margin-bottom: 2.5rem;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 110%; 
+  left: 0;
+  right: 0;
+  background: var(--spotify-lighter-gray);
+  border: 2px solid var(--brand-green);
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.autocomplete-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.autocomplete-item:hover {
+  background-color: #dcfce7;
 }
 
 .search-icon {
