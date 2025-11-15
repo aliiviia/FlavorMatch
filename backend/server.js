@@ -319,7 +319,7 @@ app.get("/callback", async (req, res) => {
     const access_token = tokenResponse.data.access_token;
 
     // Redirect back to frontend with the token
-    res.redirect(`http://localhost:3000/?access_token=${access_token}`);
+  res.redirect(`http://127.0.0.1:3000/?token=${access_token}`); 
   } catch (err) {
     console.error("Error exchanging code:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to authenticate with Spotify" });
