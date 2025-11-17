@@ -7,33 +7,38 @@ export default function RecipeDetails() {
   const navigate = useNavigate();
 
   const [recipeInfo, setRecipeInfo] = useState(null);
-  const [songData, setSongData] = useState(null);
-  const [playlist, setPlaylist] = useState([]);
-  const [showPlaylist, setShowPlaylist] = useState(false);
   const [loading, setLoading] = useState(true);
-
   const [recommendedTracks, setRecommendedTracks] = useState([]);
   const [playlistId, setPlaylistId] = useState(null);
   const spotifyToken = localStorage.getItem("spotify_token");
 
   useEffect(() => {
-    const fetchDetails = async () => {
+        const fetchDetails = async () => {
       try {
-        // Fetch recipe info from backend (Spoonacular wrapper)
+        // 1) Fetch recipe info
         const recipeRes = await fetch(
           `http://localhost:5001/api/recipeInfo?id=${id}`
         );
         const recipe = await recipeRes.json();
         setRecipeInfo(recipe);
 
-        // Fetch Spotify track + playlist based on recipe title
-        const songRes = await fetch(
-          `http://localhost:5001/api/songForRecipe?recipe=${encodeURIComponent(
-            recipe.title
-          )}`
+        // 2) Fetch recommendations from Spotify based on cuisine
+        const cuisine = recipe.cuisines?.[0] || "american";
+
+        const recRes = await fetch(
+          "http://localhost:5001/api/recommendations",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${spotifyToken}`,
+            },
+            body: JSON.stringify({ cuisine }),
+          }
         );
-        const song = await songRes.json();
-        setSongData(song);
+
+        const recData = await recRes.json();
+        setRecommendedTracks(recData.tracks || []);
       } catch (err) {
         console.error("Error fetching recipe details:", err);
       } finally {
