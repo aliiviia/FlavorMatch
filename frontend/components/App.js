@@ -12,11 +12,13 @@ function App() {
   // ---- Spotify login token handling ----
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("access_token");
+    const token = params.get("access_token");   
 
     if (token) {
       localStorage.setItem("spotify_token", token);
       console.log("User logged in with Spotify:", token);
+
+      window.history.replaceState({}, document.title, "/");
     }
   }, []);
   // --------------------------------------

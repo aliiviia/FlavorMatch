@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import AppLayout from "./AppLayout";
 import Home from "./pages/Home.jsx";
 import RecipeDetails from "./pages/RecipeDetails.jsx";
@@ -10,6 +11,21 @@ import ExploreCustomRecipesPage from "./pages/ExploreCustomRecipePage.js";
 import "./App.css";
 
 export default function App() {
+  // ---- Spotify token handler ----
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("access_token");
+
+    if (token) {
+      localStorage.setItem("spotify_token", token);
+      console.log("Spotify Login Successful:", token);
+
+      // Remove token from URL to fix routing
+      window.history.replaceState({}, document.title, "/");
+    }
+  }, []);
+  // ---------------------------------
+
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -20,7 +36,6 @@ export default function App() {
         <Route path="/custom" element={<CustomRecipePage />} />
         <Route path="/create" element={<CreateRecipePage />} />
         <Route path="/explore" element={<ExploreCustomRecipesPage />} />
-
       </Route>
     </Routes>
   );

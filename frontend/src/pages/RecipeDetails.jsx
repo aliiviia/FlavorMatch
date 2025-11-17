@@ -23,7 +23,15 @@ export default function RecipeDetails() {
         setRecipeInfo(recipe);
 
         // 2) Fetch recommendations from Spotify based on cuisine
-        const cuisine = recipe.cuisines?.[0] || "american";
+        const cuisine = recipe.title.toLowerCase().includes("mexican")
+          ? "mexican"
+          : recipe.title.toLowerCase().includes("italian")
+          ? "italian"
+          : recipe.title.toLowerCase().includes("japanese")
+          ? "japanese"
+          : recipe.title.toLowerCase().includes("indian")
+          ? "indian"
+          : "american";
 
         const recRes = await fetch(
           "http://localhost:5001/api/recommendations",
@@ -47,22 +55,68 @@ export default function RecipeDetails() {
     };
 
     fetchDetails();
-  }, [id]);
+  }, [id, spotifyToken]);
 
-  const getTrackEmbedUrl = (url) => {
-    if (!url) return null;
-    const parts = url.split("/track/");
-    if (parts.length < 2) return null;
-    const rest = parts[1].split("?")[0];
-    return `https://open.spotify.com/embed/track/${rest}`;
-  };
+    // -----------------------------------------------
+  // HANDLE PLAYLIST CREATION
+  // -----------------------------------------------
+  const handleMakePlaylist = async () => {
+    if (!spotifyToken) {
+      alert("Please log in with Spotify first!");
+      return;
+    }
+    if (!recommendedTracks.length) {
+      alert("No recommended tracks to add.");
+      return;
+    }
 
-  const handleMakePlaylist = () => {
-    if (songData?.playlist?.length) {
-      setPlaylist(songData.playlist.slice(0, 10));
-      setShowPlaylist(true);
-    } else {
-      alert("No playlist found.");
+    try {
+      // Step 1: Get logged-in Spotify user profile
+      const userRes = await fetch("http://localhost:5001/me", {
+        headers: {
+          Authorization: `Bearer ${spotifyToken}`,
+        },
+      });
+      const user = await userRes.json();
+
+      // Step 2: Create a new playlist
+      const playlistRes = await fetch(
+        "http://localhost:5001/api/createPlaylist",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${spotifyToken}`,
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            recipeTitle: recipeInfo.title,
+          }),
+        }
+      );
+
+      const playlist = await playlistRes.json();
+      setPlaylistId(playlist.id);
+
+      // Step 3: Add recommended tracks to playlist
+      const uris = recommendedTracks.map((t) => t.uri);
+
+      await fetch("http://localhost:5001/api/addTracks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${spotifyToken}`,
+        },
+        body: JSON.stringify({
+          playlistId: playlist.id,
+          uris,
+        }),
+      });
+
+      alert("Playlist created! Scroll down to listen.");
+    } catch (err) {
+      console.error("Error creating playlist:", err);
+      alert("Failed to create playlist.");
     }
   };
 
@@ -85,10 +139,6 @@ export default function RecipeDetails() {
       </main>
     );
   }
-
-  const trackEmbedUrl = songData?.randomTrack
-    ? getTrackEmbedUrl(songData.randomTrack.url)
-    : null;
 
   return (
     <main className="recipe-page">
@@ -181,84 +231,55 @@ export default function RecipeDetails() {
             </article>
           </div>
 
-          {/* RIGHT COLUMN: music pairing card */}
+                    {/* RIGHT COLUMN - MUSIC */}
           <aside className="recipe-side-column">
             <article className="recipe-card music-card">
-              <div className="music-card-header">
-                <h2 className="recipe-section-heading">
-                  <span className="music-icon">🎵</span> Music Pairing
-                </h2>
-                <p className="music-subtitle">
-                  The perfect soundtrack for cooking this recipe.
-                </p>
-              </div>
+              <h2 className="recipe-section-heading">
+                <span className="music-icon">🎵</span> Music Pairing
+              </h2>
+              <p className="music-subtitle">
+                Songs that match the vibe of this cuisine.
+              </p>
 
-              {/* Main matching track */}
-              {songData?.randomTrack && (
-                <div className="music-track-card">
-                  <div className="music-track-info">
-                    <p className="music-track-title">
-                      {songData.randomTrack.name}
-                    </p>
-                    <p className="music-track-artist">
-                      {songData.randomTrack.artists.join(", ")}
-                    </p>
-                  </div>
-
-                  {trackEmbedUrl && (
-                    <iframe
-                      src={trackEmbedUrl}
-                      width="100%"
-                      height="80"
-                      frameBorder="0"
-                      allow="encrypted-media"
-                      title="Spotify Player"
-                      className="song-embed"
-                    />
-                  )}
+              {/* Recommended Tracks */}
+              {recommendedTracks.length > 0 ? (
+                <div className="music-recommendations">
+                  {recommendedTracks.slice(0, 6).map((track) => (
+                    <div key={track.id} className="music-track-card small">
+                      <p className="music-track-title">{track.name}</p>
+                      <p className="music-track-artist">
+                        {track.artists.map((a) => a.name).join(", ")}
+                      </p>
+                    </div>
+                  ))}
                 </div>
+              ) : (
+                <p>No recommendations found.</p>
               )}
 
-              {/* Playlist preview (list of tracks) */}
-              {showPlaylist && playlist.length > 0 && (
-                <div className="music-playlist-list">
-                  {playlist.map((track, index) => {
-                    const parts = track.url.split("/track/");
-                    if (parts.length < 2) return null;
-                    const trackId = parts[1].split("?")[0];
+              {/* Button */}
+              <button
+                type="button"
+                className="music-primary-btn"
+                onClick={handleMakePlaylist}
+              >
+                🎧 Generate Spotify Playlist
+              </button>
 
-                    return (
-                      <div key={index} className="music-track-card small">
-                        <div className="music-track-info">
-                          <p className="music-track-title">{track.name}</p>
-                          <p className="music-track-artist">
-                            {track.artists.join(", ")}
-                          </p>
-                        </div>
-                        <iframe
-                          src={`https://open.spotify.com/embed/track/${trackId}`}
-                          width="100%"
-                          height="64"
-                          allow="encrypted-media"
-                          title={`track-${index}`}
-                          className="song-embed"
-                        />
-                      </div>
-                    );
-                  })}
+              {/* Playlist Embed */}
+              {playlistId && (
+                <div className="playlist-embed-wrapper">
+                  <iframe
+                    src={`https://open.spotify.com/embed/playlist/${playlistId}`}
+                    width="100%"
+                    height="400"
+                    style={{ borderRadius: "12px" }}
+                    frameBorder="0"
+                    allow="encrypted-media"
+                    title="playlist-player"
+                  />
                 </div>
               )}
-
-              {/* Actions */}
-              <div className="music-actions">
-                <button
-                  type="button"
-                  className="music-primary-btn"
-                  onClick={handleMakePlaylist}
-                >
-                  🎧 Add All to Playlist
-                </button>
-              </div>
             </article>
           </aside>
         </section>
