@@ -12,6 +12,10 @@ export default function RecipeDetails() {
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const [recommendedTracks, setRecommendedTracks] = useState([]);
+  const [playlistId, setPlaylistId] = useState(null);
+  const spotifyToken = localStorage.getItem("spotify_token");
+
   useEffect(() => {
     const fetchDetails = async () => {
       try {
