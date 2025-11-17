@@ -319,32 +319,6 @@ app.get("/api/autocomplete", async (req, res) => {
 });
 
 
-
-// Playlist Endpoint temporary will be changing when OAuth is integrated(always public)
-app.get("/api/playlist", async (req, res) => {
-  const recipeName = req.query.recipe;
-  try {
-    const playlists = {
-      italian: "https://open.spotify.com/playlist/37i9dQZF1DX6bBjHfdRnza",
-      mexican: "https://open.spotify.com/playlist/37i9dQZF1DWYzpSJHStHHx",
-      japanese: "https://open.spotify.com/playlist/37i9dQZF1DX4jP4eebSWR9",
-      indian: "https://open.spotify.com/playlist/37i9dQZF1DX7R1MnT8pC9x",
-      american: "https://open.spotify.com/playlist/37i9dQZF1DWXLeA8Omikj7",
-      french: "https://open.spotify.com/playlist/37i9dQZF1DWZLxB4E8pGQK",
-    };
-
-    const cuisine =
-      Object.keys(playlists).find((key) =>
-        recipeName.toLowerCase().includes(key)
-      ) || "american";
-
-    res.json({ playlistUrl: playlists[cuisine] });
-  } catch (err) {
-    console.error("Error creating playlist:", err);
-    res.status(500).json({ error: "Failed to create playlist" });
-  }
-});
-
 // ---------------------------------------------------
 // SPOTIFY OAUTH LOGIN FLOW (USER AUTHENTICATION)
 // ---------------------------------------------------
