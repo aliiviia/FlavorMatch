@@ -135,8 +135,20 @@ app.get("/api/songForRecipe", async (req, res) => {
     const genre = cuisineGenreMap[cuisine] || "pop";
     console.log(` Recipe: ${recipe} | Cuisine: ${cuisine} | Genre: ${genre}`);
 
-    const token = await getSpotifyToken();
-    let tracks = await getSpotifyTracks(genre, token);
+  // Replaced client credentials to use the users token 
+  const userToken = req.headers.authorization?.split(" ")[1];
+  if (!userToken) return res.status(401).json({ error: "Missing Spotify token" });
+
+  const recRes = await fetch(
+    `https://api.spotify.com/v1/recommendations?seed_genres=${genre}&limit=10`,
+    {
+      headers: { Authorization: `Bearer ${userToken}` }
+    }
+  );
+
+  const data = await recRes.json();
+  const tracks = data.tracks;
+
 
     if (!tracks.length) {
       console.log(` No tracks for "${genre}". Retrying with "chill".`);
@@ -168,6 +180,7 @@ app.get("/api/songForRecipe", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Recipe Info Endpoint (Spoonacular + fallback)
 app.get("/api/recipeInfo", async (req, res) => {
