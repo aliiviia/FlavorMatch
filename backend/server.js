@@ -79,109 +79,160 @@ async function getCuisine(recipeName) {
   }
 }
 
-//  Spotify client credentials flow
-let spotifyToken = null;
-let tokenExpires = 0;
+/* ------------------------------------------------------
+   SPOTIFY — USER AUTH (OAUTH FLOW)
+------------------------------------------------------ */
+// Step 1 — Redirect user to Spotify Login Page
+app.get("/login", (req, res) => {
+  const authorizeUrl = "https://accounts.spotify.com/authorize";
 
-async function getSpotifyToken() {
-  if (spotifyToken && Date.now() < tokenExpires) return spotifyToken;
-
-  const client_id = process.env.SPOTIFY_CLIENT_ID;
-  const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-
-  const res = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization:
-        "Basic " +
-        Buffer.from(`${client_id}:${client_secret}`).toString("base64"),
-    },
-    body: "grant_type=client_credentials",
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: process.env.SPOTIFY_CLIENT_ID,
+    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+    scope: [
+      "user-read-email",
+      "user-read-private",
+      "playlist-modify-public",
+      "playlist-modify-private"
+    ].join(" ")
   });
 
-  const data = await res.json();
-  spotifyToken = data.access_token;
-  tokenExpires = Date.now() + data.expires_in * 1000;
+  res.redirect(`${authorizeUrl}?${params.toString()}`);
+});
 
-  console.log(" New Spotify token retrieved");
-  return spotifyToken;
-}
 
-//  Spotify search, look for tracks by genre
-async function getSpotifyTracks(genre, token) {
-  const res = await fetch(
-    `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-      genre
-    )}&type=track&limit=10`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+// Step 2 — Spotify redirects back with a code → exchange it for an access token
+app.get("/callback", async (req, res) => {
+  const code = req.query.code;
 
-  const data = await res.json();
-  console.log(
-    `🎵 Spotify search for "${genre}" → ${data.tracks?.items?.length || 0} tracks`
-  );
-  return data.tracks?.items || [];
-}
-
-// 🎶 Main Song Endpoint
-app.get("/api/songForRecipe", async (req, res) => {
   try {
-    const recipe = req.query.recipe;
-    if (!recipe)
-      return res.status(400).json({ error: "Please provide a recipe name." });
+    const tokenResponse = await axios.post(
+      "https://accounts.spotify.com/api/token",
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET
+      }),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      }
+    );
 
-    const cuisine = await getCuisine(recipe);
-    const genre = cuisineGenreMap[cuisine] || "pop";
-    console.log(` Recipe: ${recipe} | Cuisine: ${cuisine} | Genre: ${genre}`);
+    const access_token = tokenResponse.data.access_token;
 
-  // Replaced client credentials to use the users token 
-  const userToken = req.headers.authorization?.split(" ")[1];
-  if (!userToken) return res.status(401).json({ error: "Missing Spotify token" });
-
-  const recRes = await fetch(
-    `https://api.spotify.com/v1/recommendations?seed_genres=${genre}&limit=10`,
-    {
-      headers: { Authorization: `Bearer ${userToken}` }
-    }
-  );
-
-  const data = await recRes.json();
-  const tracks = data.tracks;
-
-
-    if (!tracks.length) {
-      console.log(` No tracks for "${genre}". Retrying with "chill".`);
-      tracks = await getSpotifyTracks("chill", token);
-    }
-
-    if (!tracks.length)
-      return res.status(404).json({ error: "No tracks found for this genre." });
-
-    const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-
-    res.json({
-      recipe,
-      cuisine,
-      genre,
-      randomTrack: {
-        name: randomTrack.name,
-        artists: randomTrack.artists.map((a) => a.name),
-        url: randomTrack.external_urls.spotify,
-      },
-      playlist: tracks.map((t) => ({
-        name: t.name,
-        artists: t.artists.map((a) => a.name),
-        url: t.external_urls.spotify,
-      })),
-    });
+    // Redirect back to frontend with the token
+    res.redirect(`http://127.0.0.1:3000/?access_token=${access_token}`);
   } catch (err) {
-    console.error("Error in /api/songForRecipe:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Error exchanging code:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to authenticate with Spotify" });
   }
 });
 
 
+// Step 3 — Get the user’s Spotify profile using the access token
+app.get("/me", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  try {
+    const userResponse = await axios.get("https://api.spotify.com/v1/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    res.json(userResponse.data);
+  } catch (err) {
+    console.error("Error fetching user profile:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch Spotify user profile" });
+  }
+});
+
+/* ------------------------------------------------------
+   SPOTIFY — RECOMMENDATIONS (USER TOKEN)
+------------------------------------------------------ */
+app.post("/api/recommendations", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { cuisine } = req.body;
+
+    if (!token) return res.status(401).json({ error: "Missing Spotify token" });
+
+    const genre = cuisineGenreMap[cuisine] || "pop";
+
+    const recRes = await fetch(
+      `https://api.spotify.com/v1/recommendations?seed_genres=${genre}&limit=20`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const data = await recRes.json();
+    res.json({ tracks: data.tracks });
+  } catch (err) {
+    console.error("Error in recommendations:", err);
+    res.status(500).json({ error: "Failed to fetch recommendations" });
+  }
+});
+
+/* ------------------------------------------------------
+   SPOTIFY — CREATE PLAYLIST
+------------------------------------------------------ */
+app.post("/api/createPlaylist", async (req, res) => {
+const token = req.headers.authorization?.split(" ")[1];
+const { userId, recipeTitle } = req.body;
+
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1/users/${userId}/playlists`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: `FlavorMatch • ${recipeTitle}`,
+          description: "A custom playlist generated by FlavorMatch",
+          public: false
+        })
+      }
+    );
+
+    const playlist = await response.json();
+    res.json(playlist);
+  } catch (err) {
+    console.error("Create playlist error:", err);
+    res.status(500).json({ error: "Failed to create playlist" });
+  }
+});
+
+/* ------------------------------------------------------
+   SPOTIFY — ADD TRACKS TO PLAYLIST
+------------------------------------------------------ */
+app.post("/api/addTracks", async (req, res) => {
+  const { token, playlistId, uris } = req.body;
+
+  try {
+    await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ uris })
+      }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Add tracks error:", err);
+    res.status(500).json({ error: "Failed to add tracks" });
+  }
+});
+
+/* ------------------------------------------------------
+   RECIPE INFO ENDPOINT
+------------------------------------------------------ */
 // Recipe Info Endpoint (Spoonacular + fallback)
 app.get("/api/recipeInfo", async (req, res) => {
   const { id } = req.query;
@@ -318,76 +369,6 @@ app.get("/api/autocomplete", async (req, res) => {
   }
 });
 
-
-// ---------------------------------------------------
-// SPOTIFY OAUTH LOGIN FLOW (USER AUTHENTICATION)
-// ---------------------------------------------------
-
-// Step 1 — Redirect user to Spotify Login Page
-app.get("/login", (req, res) => {
-  const authorizeUrl = "https://accounts.spotify.com/authorize";
-
-  const params = new URLSearchParams({
-    response_type: "code",
-    client_id: process.env.SPOTIFY_CLIENT_ID,
-    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-    scope: [
-      "user-read-email",
-      "user-read-private",
-      "playlist-modify-public",
-      "playlist-modify-private"
-    ].join(" ")
-  });
-
-  res.redirect(`${authorizeUrl}?${params.toString()}`);
-});
-
-
-// Step 2 — Spotify redirects back with a code → exchange it for an access token
-app.get("/callback", async (req, res) => {
-  const code = req.query.code;
-
-  try {
-    const tokenResponse = await axios.post(
-      "https://accounts.spotify.com/api/token",
-      new URLSearchParams({
-        grant_type: "authorization_code",
-        code: code,
-        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        client_secret: process.env.SPOTIFY_CLIENT_SECRET
-      }),
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-      }
-    );
-
-    const access_token = tokenResponse.data.access_token;
-
-    // Redirect back to frontend with the token
-  res.redirect(`http://127.0.0.1:3000/?token=${access_token}`); 
-  } catch (err) {
-    console.error("Error exchanging code:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to authenticate with Spotify" });
-  }
-});
-
-
-// Step 3 — Get the user’s Spotify profile using the access token
-app.get("/me", async (req, res) => {
-  const token = req.query.token;
-
-  try {
-    const userResponse = await axios.get("https://api.spotify.com/v1/me", {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    res.json(userResponse.data);
-  } catch (err) {
-    console.error("Error fetching user profile:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to fetch Spotify user profile" });
-  }
-});
 
 // Start server
 const PORT = process.env.PORT || 5001;
