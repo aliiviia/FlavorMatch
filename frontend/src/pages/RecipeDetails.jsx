@@ -9,44 +9,50 @@ export default function RecipeDetails() {
   const [recipeInfo, setRecipeInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recommendedTracks, setRecommendedTracks] = useState([]);
+  const [selectedTrack, setSelectedTrack] = useState(null); // ⭐ NEW: single random track
   const [playlistId, setPlaylistId] = useState(null);
+
   const spotifyToken = localStorage.getItem("spotify_token");
 
+  /* ---------------------------------------------------
+      FETCH RECIPE INFO + GET RECOMMENDATIONS
+  --------------------------------------------------- */
   useEffect(() => {
-        const fetchDetails = async () => {
+    const fetchDetails = async () => {
       try {
-        // 1) Fetch recipe info
+        // (1) Fetch recipe info
         const recipeRes = await fetch(
-          `http://localhost:5001/api/recipeInfo?id=${id}`
+          `http://127.0.0.1:5001/api/recipeInfo?id=${id}`
         );
         const recipe = await recipeRes.json();
         setRecipeInfo(recipe);
 
-        // 2) Fetch recommendations from Spotify based on cuisine
-        const cuisine = recipe.title.toLowerCase().includes("mexican")
-          ? "mexican"
-          : recipe.title.toLowerCase().includes("italian")
-          ? "italian"
-          : recipe.title.toLowerCase().includes("japanese")
-          ? "japanese"
-          : recipe.title.toLowerCase().includes("indian")
-          ? "indian"
-          : "american";
+        // (2) Get cuisine returned from backend
+        const cuisine = recipe.cuisine;
+        console.log("Cuisine detected:", cuisine);
 
-        const recRes = await fetch(
-          "http://localhost:5001/api/recommendations",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${spotifyToken}`,
-            },
-            body: JSON.stringify({ cuisine }),
-          }
-        );
+        // (3) Fetch recommended songs from backend
+        const recRes = await fetch("http://127.0.0.1:5001/api/recommendations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${spotifyToken}`,
+          },
+          body: JSON.stringify({ cuisine }),
+        });
 
         const recData = await recRes.json();
-        setRecommendedTracks(recData.tracks || []);
+        console.log("Recommendation response:", recData);
+
+        const tracks = recData.tracks || [];
+        setRecommendedTracks(tracks);
+
+        // (4) Pick one random track to display + embed
+        if (tracks.length > 0) {
+          const random =
+            tracks[Math.floor(Math.random() * tracks.length)];
+          setSelectedTrack(random);
+        }
       } catch (err) {
         console.error("Error fetching recipe details:", err);
       } finally {
@@ -57,31 +63,31 @@ export default function RecipeDetails() {
     fetchDetails();
   }, [id, spotifyToken]);
 
-    // -----------------------------------------------
-  // HANDLE PLAYLIST CREATION
-  // -----------------------------------------------
+  /* ---------------------------------------------------
+      CREATE PLAYLIST
+  --------------------------------------------------- */
   const handleMakePlaylist = async () => {
     if (!spotifyToken) {
       alert("Please log in with Spotify first!");
       return;
     }
+
     if (!recommendedTracks.length) {
       alert("No recommended tracks to add.");
       return;
     }
 
     try {
-      // Step 1: Get logged-in Spotify user profile
-      const userRes = await fetch("http://localhost:5001/me", {
-        headers: {
-          Authorization: `Bearer ${spotifyToken}`,
-        },
+      // (1) Get Spotify user profile
+      const userRes = await fetch("http://127.0.0.1:5001/me", {
+        headers: { Authorization: `Bearer ${spotifyToken}` },
       });
+
       const user = await userRes.json();
 
-      // Step 2: Create a new playlist
+      // (2) Create playlist
       const playlistRes = await fetch(
-        "http://localhost:5001/api/createPlaylist",
+        "http://127.0.0.1:5001/api/createPlaylist",
         {
           method: "POST",
           headers: {
@@ -98,10 +104,10 @@ export default function RecipeDetails() {
       const playlist = await playlistRes.json();
       setPlaylistId(playlist.id);
 
-      // Step 3: Add recommended tracks to playlist
+      // (3) Add all recommended songs to playlist
       const uris = recommendedTracks.map((t) => t.uri);
 
-      await fetch("http://localhost:5001/api/addTracks", {
+      await fetch("http://127.0.0.1:5001/api/addTracks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,6 +126,9 @@ export default function RecipeDetails() {
     }
   };
 
+  /* ---------------------------------------------------
+      LOADING / ERROR
+  --------------------------------------------------- */
   if (loading) {
     return (
       <main className="recipe-page">
@@ -140,15 +149,16 @@ export default function RecipeDetails() {
     );
   }
 
+  /* ---------------------------------------------------
+      MAIN UI
+  --------------------------------------------------- */
   return (
     <main className="recipe-page">
       <div className="recipe-page-inner">
-        {/* Top bar */}
         <button className="back-btn" onClick={() => navigate(-1)}>
           ← Back to recipes
         </button>
 
-        {/* Header section: title + meta + summary */}
         <header className="recipe-header">
           <h1 className="recipe-title-main">{recipeInfo.title}</h1>
 
@@ -173,11 +183,10 @@ export default function RecipeDetails() {
           )}
         </header>
 
-        {/* Main 2-column layout */}
         <section className="recipe-layout">
-          {/* LEFT COLUMN: image + ingredients + instructions */}
+          {/* LEFT COLUMN */}
           <div className="recipe-main-column">
-            {/* Big image card */}
+            {/* Image */}
             <article className="recipe-card recipe-image-card">
               <img
                 src={recipeInfo.image}
@@ -186,7 +195,7 @@ export default function RecipeDetails() {
               />
             </article>
 
-            {/* Ingredients card */}
+            {/* Ingredients */}
             <article className="recipe-card">
               <h2 className="recipe-section-heading">Ingredients</h2>
               <ul className="ingredients-list">
@@ -205,59 +214,66 @@ export default function RecipeDetails() {
               </ul>
             </article>
 
-            {/* Instructions card */}
+            {/* Instructions */}
             <article className="recipe-card">
               <h2 className="recipe-section-heading">Instructions</h2>
               {recipeInfo.instructions ? (
                 <ol className="instructions-list">
                   {recipeInfo.instructions
-                    .split(/\. +/) 
+                    .split(/\. +/)
                     .map((step) => step.trim())
                     .filter(Boolean)
                     .map((step, index) => (
                       <li key={index} className="instruction-item">
-                        <span className="instruction-number">
-                          {index + 1}
-                        </span>
+                        <span className="instruction-number">{index + 1}</span>
                         <p className="instruction-text">{step}</p>
                       </li>
                     ))}
                 </ol>
               ) : (
-                <p className="instructions-text">
-                  No instructions provided for this recipe.
-                </p>
+                <p>No instructions provided.</p>
               )}
             </article>
           </div>
 
-                    {/* RIGHT COLUMN - MUSIC */}
+          {/* RIGHT COLUMN: MUSIC */}
           <aside className="recipe-side-column">
             <article className="recipe-card music-card">
               <h2 className="recipe-section-heading">
                 <span className="music-icon">🎵</span> Music Pairing
               </h2>
               <p className="music-subtitle">
-                Songs that match the vibe of this cuisine.
+                A song selected to match this recipe’s vibe.
               </p>
 
-              {/* Recommended Tracks */}
-              {recommendedTracks.length > 0 ? (
+              {/* RANDOM SONG + EMBED */}
+              {selectedTrack ? (
                 <div className="music-recommendations">
-                  {recommendedTracks.slice(0, 6).map((track) => (
-                    <div key={track.id} className="music-track-card small">
-                      <p className="music-track-title">{track.name}</p>
-                      <p className="music-track-artist">
-                        {track.artists.map((a) => a.name).join(", ")}
-                      </p>
-                    </div>
-                  ))}
+                  <div className="music-track-card small">
+                    <p className="music-track-title">{selectedTrack.name}</p>
+                    <p className="music-track-artist">
+                      {selectedTrack.artists
+                        .map((a) => a.name)
+                        .join(", ")}
+                    </p>
+
+                    {/* PLAYABLE TRACK */}
+                    <iframe
+                      src={`https://open.spotify.com/embed/track/${selectedTrack.id}`}
+                      width="100%"
+                      height="152"
+                      style={{ borderRadius: "12px", marginTop: "10px" }}
+                      frameBorder="0"
+                      allow="encrypted-media"
+                      title="spotify-track-player"
+                    ></iframe>
+                  </div>
                 </div>
               ) : (
                 <p>No recommendations found.</p>
               )}
 
-              {/* Button */}
+              {/* Playlist Button */}
               <button
                 type="button"
                 className="music-primary-btn"

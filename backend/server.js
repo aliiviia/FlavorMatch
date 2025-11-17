@@ -124,7 +124,7 @@ app.get("/callback", async (req, res) => {
     const access_token = tokenResponse.data.access_token;
 
     // Redirect back to frontend with the token
-    res.redirect(`http://127.0.0.1:3000/?access_token=${access_token}`);
+    res.redirect("http://127.0.0.1:3000/?access_token=" + access_token);
   } catch (err) {
     console.error("Error exchanging code:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to authenticate with Spotify" });
@@ -135,12 +135,19 @@ app.get("/callback", async (req, res) => {
 // Step 3 — Get the user’s Spotify profile using the access token
 app.get("/me", async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
+
   try {
     const userResponse = await axios.get("https://api.spotify.com/v1/me", {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    res.json(userResponse.data);
+    const user = userResponse.data;
+
+    res.json({
+      id: user.id,
+      name: user.display_name,
+      image: user.images?.[0]?.url || null
+    });
   } catch (err) {
     console.error("Error fetching user profile:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to fetch Spotify user profile" });
@@ -148,7 +155,7 @@ app.get("/me", async (req, res) => {
 });
 
 /* ------------------------------------------------------
-   SPOTIFY — RECOMMENDATIONS (USER TOKEN)
+   SPOTIFY — RECOMMEND SONGS USING SEARCH INSTEAD OF GENRES
 ------------------------------------------------------ */
 app.post("/api/recommendations", async (req, res) => {
   try {
@@ -157,20 +164,27 @@ app.post("/api/recommendations", async (req, res) => {
 
     if (!token) return res.status(401).json({ error: "Missing Spotify token" });
 
-    const genre = cuisineGenreMap[cuisine] || "pop";
+    // Use your cuisineGenreMap for search keywords
+    const keyword = cuisineGenreMap[cuisine] || cuisine;
 
-    const recRes = await fetch(
-      `https://api.spotify.com/v1/recommendations?seed_genres=${genre}&limit=20`,
+    console.log("Searching Spotify with keyword:", keyword);
+
+    const searchRes = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+        keyword
+      )}&type=track&limit=20`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    const data = await recRes.json();
-    res.json({ tracks: data.tracks });
+    const data = await searchRes.json();
+
+    res.json({ tracks: data.tracks?.items || [] });
   } catch (err) {
     console.error("Error in recommendations:", err);
     res.status(500).json({ error: "Failed to fetch recommendations" });
   }
 });
+
 
 /* ------------------------------------------------------
    SPOTIFY — CREATE PLAYLIST
@@ -208,7 +222,8 @@ const { userId, recipeTitle } = req.body;
    SPOTIFY — ADD TRACKS TO PLAYLIST
 ------------------------------------------------------ */
 app.post("/api/addTracks", async (req, res) => {
-  const { token, playlistId, uris } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];
+  const { playlistId, uris } = req.body;
 
   try {
     await fetch(
@@ -234,6 +249,7 @@ app.post("/api/addTracks", async (req, res) => {
    RECIPE INFO ENDPOINT
 ------------------------------------------------------ */
 // Recipe Info Endpoint (Spoonacular + fallback)
+//  Recipe Info Endpoint (Spoonacular + fallback) with cuisine detection
 app.get("/api/recipeInfo", async (req, res) => {
   const { id } = req.query;
   const spoonacularKey = process.env.SPOONACULAR_KEY;
@@ -242,9 +258,16 @@ app.get("/api/recipeInfo", async (req, res) => {
 
   if (!spoonacularEnabled) {
     const mock = MOCK_RECIPES.find((r) => String(r.id) === String(id));
-    return mock
-      ? res.json(mock)
-      : res.status(404).json({ error: "Recipe not found in fallback data" });
+
+    if (!mock) {
+      return res.status(404).json({ error: "Recipe not found in fallback data" });
+    }
+
+    // Add cuisine from mock → matches your cuisineGenreMap
+    return res.json({
+      ...mock,
+      cuisine: mock.cuisine?.toLowerCase() || "american",
+    });
   }
 
   try {
@@ -253,7 +276,15 @@ app.get("/api/recipeInfo", async (req, res) => {
     );
 
     if (!apiRes.ok) throw new Error("Spoonacular failed");
+
     const recipe = await apiRes.json();
+
+    // Detect cuisine from Spoonacular
+    const cuisine =
+      recipe.cuisines?.[0]?.toLowerCase() ||
+      // fallback to keyword mapping (optional)
+      getCuisineFromTitle(recipe.title) ||
+      "american";
 
     res.json({
       id: recipe.id,
@@ -262,16 +293,36 @@ app.get("/api/recipeInfo", async (req, res) => {
       summary: recipe.summary,
       extendedIngredients: recipe.extendedIngredients.map((i) => i.original),
       instructions: recipe.instructions,
+      cuisine,
     });
   } catch (err) {
     console.warn("Spoonacular failed in recipeInfo:", err.message);
     disableSpoonacular();
+
     const mock = MOCK_RECIPES.find((r) => String(r.id) === String(id));
-    mock
-      ? res.json(mock)
-      : res.status(404).json({ error: "Recipe not found in fallback data" });
+
+    if (!mock) {
+      return res.status(404).json({ error: "Recipe not found" });
+    }
+
+    res.json({
+      ...mock,
+      cuisine: mock.cuisine?.toLowerCase() || "american",
+    });
   }
 });
+
+// Helper: fallback title-based cuisine detection
+function getCuisineFromTitle(title) {
+  const t = title.toLowerCase();
+  if (t.includes("mexican")) return "mexican";
+  if (t.includes("italian")) return "italian";
+  if (t.includes("indian")) return "indian";
+  if (t.includes("japanese") || t.includes("sushi") || t.includes("teriyaki"))
+    return "japanese";
+  if (t.includes("thai")) return "thai";
+  return null;
+}
 
 //  Recipes List Endpoint if spoonacular API is not available fallback to mock data
 app.get("/api/recipes", async (req, res) => {

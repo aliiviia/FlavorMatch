@@ -71,7 +71,7 @@ export default function ExploreRecipesPage() {
 
       // 🔗 Match your backend style (similar to RecipeDetails)
       const res = await fetch(
-        `http://localhost:5001/api/recipes?query=${encodeURIComponent(
+        `http://127.0.0.1:5001/api/recipes?query=${encodeURIComponent(
           query
         )}`
       );
@@ -119,7 +119,7 @@ export default function ExploreRecipesPage() {
   
     try {
       const res = await fetch(
-        `http://localhost:5001/api/autocomplete?query=${encodeURIComponent(value)}`
+        `http://127.0.0.1:5001/api/autocomplete?query=${encodeURIComponent(value)}`
       );
   
       if (!res.ok) throw new Error("Failed to fetch autocomplete");
