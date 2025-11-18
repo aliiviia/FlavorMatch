@@ -8,6 +8,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 async function extractIngredients(userText) {
+// Training the bot with examples
   const prompt = `
     You extract cooking ingredients from user text.
 
@@ -58,7 +59,7 @@ async function extractIngredients(userText) {
 }
 
 
-// Match recipes by ingredients
+// This function is an algorithm to match recipes by the given ingredienets
 function findMatchingRecipes(ingredients) {
   const terms = ingredients.map(i => i.toLowerCase());
 
@@ -80,7 +81,7 @@ function findMatchingRecipes(ingredients) {
 
 
 
-// ✨ Main chatbot route
+// This routes to how the chatbot gets the request from the user.
 router.post("/chat-ingredients", async (req, res) => {
   try {
     const { message } = req.body;

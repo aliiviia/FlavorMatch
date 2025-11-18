@@ -1,3 +1,7 @@
+/* This file controls the chat bot box that appears on every page. I(Alivia) implented the bot to have
+    - a welcome prompt
+    - a Text input
+    - To appear on each page on the bottom right */
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
