@@ -30,7 +30,7 @@ export default function Navbar({ user }) {
 
         <nav className="nav-links">
 
-          {/* Your nav links here */}
+          {/* Main navigation links */}
           <NavLink to="/" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Home
           </NavLink>
@@ -55,12 +55,16 @@ export default function Navbar({ user }) {
               ref={dropdownRef}
             >
               <img
-                src={user.image}
+                src={user.image || "/spotify-logo.png"}
                 alt="Spotify Profile"
                 className="spotify-profile-img"
+                onError={(e) => {
+                  e.currentTarget.onerror = null; 
+                  e.currentTarget.src = "/spotify-logo.png";
+                }}
               />
 
-              {/* Dropdown */}
+              {/* Dropdown menu */}
               <div className={`spotify-dropdown ${open ? "open" : ""}`}>
                 <button
                   onClick={() => {

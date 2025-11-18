@@ -6,6 +6,7 @@ import cuisineGenreMap from "./cuisineGenreMap.js";
 import { MOCK_RECIPES } from "./mockRecipes.js";
 import { pool } from "./db/index.js";
 import axios from "axios";
+import chatIngredientsRouter from "./chat-ingredients.js";
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/api", chatIngredientsRouter);
 
 app.get("/", (req, res) => res.send("FlavorMatch backend is running!"));
 app.get("/api/hello", (req, res) =>
@@ -79,97 +81,177 @@ async function getCuisine(recipeName) {
   }
 }
 
-//  Spotify client credentials flow
-let spotifyToken = null;
-let tokenExpires = 0;
+/* ------------------------------------------------------
+   SPOTIFY — USER AUTH (OAUTH FLOW)
+------------------------------------------------------ */
+// Step 1 — Redirect user to Spotify Login Page
+app.get("/login", (req, res) => {
+  const authorizeUrl = "https://accounts.spotify.com/authorize";
 
-async function getSpotifyToken() {
-  if (spotifyToken && Date.now() < tokenExpires) return spotifyToken;
-
-  const client_id = process.env.SPOTIFY_CLIENT_ID;
-  const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-
-  const res = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization:
-        "Basic " +
-        Buffer.from(`${client_id}:${client_secret}`).toString("base64"),
-    },
-    body: "grant_type=client_credentials",
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: process.env.SPOTIFY_CLIENT_ID,
+    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+    scope: [
+      "user-read-email",
+      "user-read-private",
+      "playlist-modify-public",
+      "playlist-modify-private"
+    ].join(" ")
   });
 
-  const data = await res.json();
-  spotifyToken = data.access_token;
-  tokenExpires = Date.now() + data.expires_in * 1000;
+  res.redirect(`${authorizeUrl}?${params.toString()}`);
+});
 
-  console.log(" New Spotify token retrieved");
-  return spotifyToken;
-}
 
-//  Spotify search, look for tracks by genre
-async function getSpotifyTracks(genre, token) {
-  const res = await fetch(
-    `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-      genre
-    )}&type=track&limit=10`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+// Step 2 — Spotify redirects back with a code → exchange it for an access token
+app.get("/callback", async (req, res) => {
+  const code = req.query.code;
 
-  const data = await res.json();
-  console.log(
-    `🎵 Spotify search for "${genre}" → ${data.tracks?.items?.length || 0} tracks`
-  );
-  return data.tracks?.items || [];
-}
-
-// 🎶 Main Song Endpoint
-app.get("/api/songForRecipe", async (req, res) => {
   try {
-    const recipe = req.query.recipe;
-    if (!recipe)
-      return res.status(400).json({ error: "Please provide a recipe name." });
+    const tokenResponse = await axios.post(
+      "https://accounts.spotify.com/api/token",
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET
+      }),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      }
+    );
 
-    const cuisine = await getCuisine(recipe);
-    const genre = cuisineGenreMap[cuisine] || "pop";
-    console.log(` Recipe: ${recipe} | Cuisine: ${cuisine} | Genre: ${genre}`);
+    const access_token = tokenResponse.data.access_token;
 
-    const token = await getSpotifyToken();
-    let tracks = await getSpotifyTracks(genre, token);
-
-    if (!tracks.length) {
-      console.log(` No tracks for "${genre}". Retrying with "chill".`);
-      tracks = await getSpotifyTracks("chill", token);
-    }
-
-    if (!tracks.length)
-      return res.status(404).json({ error: "No tracks found for this genre." });
-
-    const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-
-    res.json({
-      recipe,
-      cuisine,
-      genre,
-      randomTrack: {
-        name: randomTrack.name,
-        artists: randomTrack.artists.map((a) => a.name),
-        url: randomTrack.external_urls.spotify,
-      },
-      playlist: tracks.map((t) => ({
-        name: t.name,
-        artists: t.artists.map((a) => a.name),
-        url: t.external_urls.spotify,
-      })),
-    });
+    // Redirect back to frontend with the token
+    res.redirect("http://127.0.0.1:3000/?access_token=" + access_token);
   } catch (err) {
-    console.error("Error in /api/songForRecipe:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Error exchanging code:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to authenticate with Spotify" });
   }
 });
 
+
+// Step 3 — Get the user’s Spotify profile using the access token
+app.get("/me", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  try {
+    const userResponse = await axios.get("https://api.spotify.com/v1/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const user = userResponse.data;
+
+    res.json({
+      id: user.id,
+      name: user.display_name,
+      image: user.images?.[0]?.url || null
+    });
+  } catch (err) {
+    console.error("Error fetching user profile:", err.response?.data || err.message);
+    res.status(500).json({ error: "Failed to fetch Spotify user profile" });
+  }
+});
+
+/* ------------------------------------------------------
+   SPOTIFY — RECOMMEND SONGS USING SEARCH INSTEAD OF GENRES
+------------------------------------------------------ */
+app.post("/api/recommendations", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { cuisine } = req.body;
+
+    if (!token) return res.status(401).json({ error: "Missing Spotify token" });
+
+    // Use your cuisineGenreMap for search keywords
+    const keyword = cuisineGenreMap[cuisine] || cuisine;
+
+    console.log("Searching Spotify with keyword:", keyword);
+
+    const searchRes = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+        keyword
+      )}&type=track&limit=20`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const data = await searchRes.json();
+
+    res.json({ tracks: data.tracks?.items || [] });
+  } catch (err) {
+    console.error("Error in recommendations:", err);
+    res.status(500).json({ error: "Failed to fetch recommendations" });
+  }
+});
+
+
+/* ------------------------------------------------------
+   SPOTIFY — CREATE PLAYLIST
+------------------------------------------------------ */
+app.post("/api/createPlaylist", async (req, res) => {
+const token = req.headers.authorization?.split(" ")[1];
+const { userId, recipeTitle } = req.body;
+
+  try {
+    const response = await fetch(
+      `https://api.spotify.com/v1/users/${userId}/playlists`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: `FlavorMatch • ${recipeTitle}`,
+          description: "A custom playlist generated by FlavorMatch",
+          public: false
+        })
+      }
+    );
+
+    const playlist = await response.json();
+    res.json(playlist);
+  } catch (err) {
+    console.error("Create playlist error:", err);
+    res.status(500).json({ error: "Failed to create playlist" });
+  }
+});
+
+/* ------------------------------------------------------
+   SPOTIFY — ADD TRACKS TO PLAYLIST
+------------------------------------------------------ */
+app.post("/api/addTracks", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  const { playlistId, uris } = req.body;
+
+  try {
+    await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ uris })
+      }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Add tracks error:", err);
+    res.status(500).json({ error: "Failed to add tracks" });
+  }
+});
+
+/* ------------------------------------------------------
+   RECIPE INFO ENDPOINT
+------------------------------------------------------ */
 // Recipe Info Endpoint (Spoonacular + fallback)
+//  Recipe Info Endpoint (Spoonacular + fallback) with cuisine detection
 app.get("/api/recipeInfo", async (req, res) => {
   const { id } = req.query;
   const spoonacularKey = process.env.SPOONACULAR_KEY;
@@ -178,9 +260,16 @@ app.get("/api/recipeInfo", async (req, res) => {
 
   if (!spoonacularEnabled) {
     const mock = MOCK_RECIPES.find((r) => String(r.id) === String(id));
-    return mock
-      ? res.json(mock)
-      : res.status(404).json({ error: "Recipe not found in fallback data" });
+
+    if (!mock) {
+      return res.status(404).json({ error: "Recipe not found in fallback data" });
+    }
+
+    // Add cuisine from mock → matches your cuisineGenreMap
+    return res.json({
+      ...mock,
+      cuisine: mock.cuisine?.toLowerCase() || "american",
+    });
   }
 
   try {
@@ -189,7 +278,15 @@ app.get("/api/recipeInfo", async (req, res) => {
     );
 
     if (!apiRes.ok) throw new Error("Spoonacular failed");
+
     const recipe = await apiRes.json();
+
+    // Detect cuisine from Spoonacular
+    const cuisine =
+      recipe.cuisines?.[0]?.toLowerCase() ||
+      // fallback to keyword mapping (optional)
+      getCuisineFromTitle(recipe.title) ||
+      "american";
 
     res.json({
       id: recipe.id,
@@ -198,59 +295,133 @@ app.get("/api/recipeInfo", async (req, res) => {
       summary: recipe.summary,
       extendedIngredients: recipe.extendedIngredients.map((i) => i.original),
       instructions: recipe.instructions,
+      cuisine,
     });
   } catch (err) {
     console.warn("Spoonacular failed in recipeInfo:", err.message);
     disableSpoonacular();
+
     const mock = MOCK_RECIPES.find((r) => String(r.id) === String(id));
-    mock
-      ? res.json(mock)
-      : res.status(404).json({ error: "Recipe not found in fallback data" });
+
+    if (!mock) {
+      return res.status(404).json({ error: "Recipe not found" });
+    }
+
+    res.json({
+      ...mock,
+      cuisine: mock.cuisine?.toLowerCase() || "american",
+    });
   }
 });
 
-//  Recipes List Endpoint if spoonacular API is not available fallback to mock data
+// Helper: fallback title-based cuisine detection
+function getCuisineFromTitle(title) {
+  const t = title.toLowerCase();
+  if (t.includes("mexican")) return "mexican";
+  if (t.includes("italian")) return "italian";
+  if (t.includes("indian")) return "indian";
+  if (t.includes("japanese") || t.includes("sushi") || t.includes("teriyaki"))
+    return "japanese";
+  if (t.includes("thai")) return "thai";
+  return null;
+}
+
 app.get("/api/recipes", async (req, res) => {
   const query = req.query.query?.toLowerCase();
   const spoonacularKey = process.env.SPOONACULAR_KEY;
 
   reenableSpoonacularIfTime();
-  console.log("🔍 Received query:", query);
+
+  /* ------------------------------------------------------
+      1. PAGE LOAD — NO SEARCH QUERY
+      → Try Spoonacular random recipes
+      → If fails → return mock recipes
+  ------------------------------------------------------ */
+  if (!query) {
+    console.log("📌 Loading Explore page default recipes");
+
+    if (!spoonacularEnabled) {
+      console.warn("🚫 Spoonacular disabled — defaulting to mock recipes");
+      return res.json(MOCK_RECIPES);
+    }
+
+    try {
+      const apiRes = await fetch(
+        `https://api.spoonacular.com/recipes/random?number=10&apiKey=${spoonacularKey}`
+      );
+
+      if (!apiRes.ok) throw new Error("Random Spoonacular fetch failed");
+
+      const data = await apiRes.json();
+
+      const randomRecipes = data.recipes.map((r) => ({
+        id: r.id,
+        title: r.title,
+        image: r.image,
+        readyInMinutes: r.readyInMinutes,
+        servings: r.servings,
+      }));
+
+      return res.json(randomRecipes);
+    } catch (err) {
+      console.warn("⚠️ Spoonacular RANDOM failed:", err.message);
+      disableSpoonacular();
+      return res.json(MOCK_RECIPES);
+    }
+  }
+
+  /* ------------------------------------------------------
+      2. SEARCH MODE — USER ENTERED TEXT
+      → Try Spoonacular search
+      → If fails or no results → search mock data
+  ------------------------------------------------------ */
+  console.log("🔍 Searching for:", query);
 
   if (!spoonacularEnabled) {
-    console.warn("🚫 Spoonacular temporarily disabled — using mock data.");
-    const filtered = MOCK_RECIPES.filter((r) =>
+    console.warn("🚫 Spoonacular disabled — using mock fallback search");
+    const mockResults = MOCK_RECIPES.filter((r) =>
       r.title.toLowerCase().includes(query)
     );
-    return res.json(filtered.length ? filtered : MOCK_RECIPES.slice(0, 5));
+    return res.json(mockResults);
   }
 
   try {
     const apiRes = await fetch(
-      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=5&apiKey=${spoonacularKey}`
+      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=10&apiKey=${spoonacularKey}`
     );
 
-    if (!apiRes.ok)
-      throw new Error(`Spoonacular failed (status ${apiRes.status})`);
+    if (!apiRes.ok) throw new Error("Spoonacular search failed");
 
     const data = await apiRes.json();
 
-    const recipes = data.results.map((r) => ({
-      id: r.id,
-      title: r.title,
-      image: r.image,
-    }));
+    if (data.results?.length > 0) {
+      return res.json(
+        data.results.map((r) => ({
+          id: r.id,
+          title: r.title,
+          image: r.image,
+          readyInMinutes: r.readyInMinutes,
+          servings: r.servings,
+        }))
+      );
+    }
 
-    res.json(recipes);
-  } catch (err) {
-    console.warn("⚠️ Spoonacular failed in /api/recipes:", err.message);
-    disableSpoonacular();
-    const filtered = MOCK_RECIPES.filter((r) =>
+    // No Spoonacular results → fallback to mock
+    const fallback = MOCK_RECIPES.filter((r) =>
       r.title.toLowerCase().includes(query)
     );
-    res.json(filtered.length ? filtered : MOCK_RECIPES.slice(0, 5));
+    return res.json(fallback);
+  } catch (err) {
+    console.warn("⚠️ Spoonacular SEARCH failed:", err.message);
+    disableSpoonacular();
+
+    const fallback = MOCK_RECIPES.filter((r) =>
+      r.title.toLowerCase().includes(query)
+    );
+    return res.json(fallback);
   }
 });
+
 
 app.get("/api/autocomplete", async (req, res) => {
   const query = req.query.query?.toLowerCase();
@@ -305,102 +476,6 @@ app.get("/api/autocomplete", async (req, res) => {
   }
 });
 
-
-
-// Playlist Endpoint temporary will be changing when OAuth is integrated(always public)
-app.get("/api/playlist", async (req, res) => {
-  const recipeName = req.query.recipe;
-  try {
-    const playlists = {
-      italian: "https://open.spotify.com/playlist/37i9dQZF1DX6bBjHfdRnza",
-      mexican: "https://open.spotify.com/playlist/37i9dQZF1DWYzpSJHStHHx",
-      japanese: "https://open.spotify.com/playlist/37i9dQZF1DX4jP4eebSWR9",
-      indian: "https://open.spotify.com/playlist/37i9dQZF1DX7R1MnT8pC9x",
-      american: "https://open.spotify.com/playlist/37i9dQZF1DWXLeA8Omikj7",
-      french: "https://open.spotify.com/playlist/37i9dQZF1DWZLxB4E8pGQK",
-    };
-
-    const cuisine =
-      Object.keys(playlists).find((key) =>
-        recipeName.toLowerCase().includes(key)
-      ) || "american";
-
-    res.json({ playlistUrl: playlists[cuisine] });
-  } catch (err) {
-    console.error("Error creating playlist:", err);
-    res.status(500).json({ error: "Failed to create playlist" });
-  }
-});
-
-// ---------------------------------------------------
-// SPOTIFY OAUTH LOGIN FLOW (USER AUTHENTICATION)
-// ---------------------------------------------------
-
-// Step 1 — Redirect user to Spotify Login Page
-app.get("/login", (req, res) => {
-  const authorizeUrl = "https://accounts.spotify.com/authorize";
-
-  const params = new URLSearchParams({
-    response_type: "code",
-    client_id: process.env.SPOTIFY_CLIENT_ID,
-    redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-    scope: [
-      "user-read-email",
-      "user-read-private",
-      "playlist-modify-public",
-      "playlist-modify-private"
-    ].join(" ")
-  });
-
-  res.redirect(`${authorizeUrl}?${params.toString()}`);
-});
-
-
-// Step 2 — Spotify redirects back with a code → exchange it for an access token
-app.get("/callback", async (req, res) => {
-  const code = req.query.code;
-
-  try {
-    const tokenResponse = await axios.post(
-      "https://accounts.spotify.com/api/token",
-      new URLSearchParams({
-        grant_type: "authorization_code",
-        code: code,
-        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        client_secret: process.env.SPOTIFY_CLIENT_SECRET
-      }),
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-      }
-    );
-
-    const access_token = tokenResponse.data.access_token;
-
-    // Redirect back to frontend with the token
-  res.redirect(`http://127.0.0.1:3000/?token=${access_token}`); 
-  } catch (err) {
-    console.error("Error exchanging code:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to authenticate with Spotify" });
-  }
-});
-
-
-// Step 3 — Get the user’s Spotify profile using the access token
-app.get("/me", async (req, res) => {
-  const token = req.query.token;
-
-  try {
-    const userResponse = await axios.get("https://api.spotify.com/v1/me", {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    res.json(userResponse.data);
-  } catch (err) {
-    console.error("Error fetching user profile:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to fetch Spotify user profile" });
-  }
-});
 
 // Start server
 const PORT = process.env.PORT || 5001;

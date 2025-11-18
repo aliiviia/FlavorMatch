@@ -1,40 +1,48 @@
 import { useState } from "react";
 
-export default function ExploreRecipesPage() {
+export default function ExploreCustomRecipesPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
-    // 🔜 Later: call your backend to fetch filtered recipes
-    // fetch(`/api/userRecipes?query=${encodeURIComponent(searchQuery)}`)
   };
 
   return (
-    <main>
-      <h1>
-        View Custom Recipes
-      </h1>
+    <main className="custom-page">
+      <div className="custom-page-inner">
 
-      {/* Search Bar */}
-      <form
-        onSubmit={handleSearch}
-      >
-        <input
-          type="text"
-          placeholder="Search for a recipe..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button
-          type="submit"
-        >
-          Search
-        </button>
-      </form>
+        {/* HEADER */}
+        <header className="custom-header">
+          <p className="custom-eyebrow">Discover</p>
 
-      <div>
-        <p>placeholder for results</p>
+          <h1 className="custom-title">Explore Custom Recipes</h1>
+
+          <p className="custom-subtitle">
+            Browse all user-created dishes. Search by name, cuisine, or
+            ingredients — and rediscover your culinary creations.
+          </p>
+        </header>
+
+        {/* SEARCH BAR */}
+        <form className="custom-search" onSubmit={handleSearch}>
+          <input
+            type="text"
+            className="custom-search-input"
+            placeholder="Search for a recipe..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
+          <button type="submit" className="custom-search-button">
+            🔍 Search
+          </button>
+        </form>
+
+        {/* RESULTS */}
+        <section className="custom-results">
+          <p className="custom-empty">No custom recipes found yet.</p>
+        </section>
       </div>
     </main>
   );

@@ -7,29 +7,91 @@ export default function RecipeDetails() {
   const navigate = useNavigate();
 
   const [recipeInfo, setRecipeInfo] = useState(null);
-  const [songData, setSongData] = useState(null);
-  const [playlist, setPlaylist] = useState([]);
-  const [showPlaylist, setShowPlaylist] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [recommendedTracks, setRecommendedTracks] = useState([]);
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [playlistId, setPlaylistId] = useState(null);
 
+  // ⭐ FAVORITES STATE
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const spotifyToken = localStorage.getItem("spotify_token");
+
+  /* ---------------------------------------------------
+        CHECK IF RECIPE IS FAVORITE ON LOAD
+  --------------------------------------------------- */
+  useEffect(() => {
+    const favs = JSON.parse(localStorage.getItem("favorites")) || [];
+    const exists = favs.some((f) => String(f.id) === String(id));
+    setIsFavorite(exists);
+  }, [id]);
+
+  /* ---------------------------------------------------
+        TOGGLE FAVORITE
+  --------------------------------------------------- */
+  const toggleFavorite = () => {
+    let favs = JSON.parse(localStorage.getItem("favorites")) || [];
+    const exists = favs.some((f) => String(f.id) === String(id));
+
+    if (exists) {
+      // remove
+      favs = favs.filter((f) => String(f.id) !== String(id));
+      setIsFavorite(false);
+    } else {
+      const difficulty = recipeInfo.readyInMinutes <= 15
+      ? "Easy"
+      : recipeInfo.readyInMinutes <= 40
+      ? "Medium"
+      : "Hard";
+
+      // add favorite
+      favs.push({
+      id: recipeInfo.id,
+      title: recipeInfo.title,
+      image: recipeInfo.image,
+      time: `${recipeInfo.readyInMinutes} min`,
+      difficulty: difficulty,
+      tags: recipeInfo.cuisines || [],
+      });
+      setIsFavorite(true);
+    }
+
+    localStorage.setItem("favorites", JSON.stringify(favs));
+  };
+
+  /* ---------------------------------------------------
+      FETCH RECIPE INFO + MUSIC RECOMMENDATIONS
+  --------------------------------------------------- */
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        // Fetch recipe info from backend (Spoonacular wrapper)
         const recipeRes = await fetch(
-          `http://localhost:5001/api/recipeInfo?id=${id}`
+          `http://127.0.0.1:5001/api/recipeInfo?id=${id}`
         );
         const recipe = await recipeRes.json();
         setRecipeInfo(recipe);
 
-        // Fetch Spotify track + playlist based on recipe title
-        const songRes = await fetch(
-          `http://localhost:5001/api/songForRecipe?recipe=${encodeURIComponent(
-            recipe.title
-          )}`
-        );
-        const song = await songRes.json();
-        setSongData(song);
+        const cuisine = recipe.cuisine;
+
+        const recRes = await fetch("http://127.0.0.1:5001/api/recommendations", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${spotifyToken}`,
+          },
+          body: JSON.stringify({ cuisine }),
+        });
+
+        const recData = await recRes.json();
+
+        const tracks = recData.tracks || [];
+        setRecommendedTracks(tracks);
+
+        if (tracks.length > 0) {
+          const random =
+            tracks[Math.floor(Math.random() * tracks.length)];
+          setSelectedTrack(random);
+        }
       } catch (err) {
         console.error("Error fetching recipe details:", err);
       } finally {
@@ -38,25 +100,71 @@ export default function RecipeDetails() {
     };
 
     fetchDetails();
-  }, [id]);
+  }, [id, spotifyToken]);
 
-  const getTrackEmbedUrl = (url) => {
-    if (!url) return null;
-    const parts = url.split("/track/");
-    if (parts.length < 2) return null;
-    const rest = parts[1].split("?")[0];
-    return `https://open.spotify.com/embed/track/${rest}`;
-  };
+  /* ---------------------------------------------------
+      CREATE PLAYLIST
+  --------------------------------------------------- */
+  const handleMakePlaylist = async () => {
+    if (!spotifyToken) {
+      alert("Please log in with Spotify first!");
+      return;
+    }
 
-  const handleMakePlaylist = () => {
-    if (songData?.playlist?.length) {
-      setPlaylist(songData.playlist.slice(0, 10));
-      setShowPlaylist(true);
-    } else {
-      alert("No playlist found.");
+    if (!recommendedTracks.length) {
+      alert("No recommended tracks to add.");
+      return;
+    }
+
+    try {
+      const userRes = await fetch("http://127.0.0.1:5001/me", {
+        headers: { Authorization: `Bearer ${spotifyToken}` },
+      });
+
+      const user = await userRes.json();
+
+      const playlistRes = await fetch(
+        "http://127.0.0.1:5001/api/createPlaylist",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${spotifyToken}`,
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            recipeTitle: recipeInfo.title,
+          }),
+        }
+      );
+
+      const playlist = await playlistRes.json();
+      setPlaylistId(playlist.id);
+
+      const uris = recommendedTracks.map((t) => t.uri);
+
+      await fetch("http://127.0.0.1:5001/api/addTracks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${spotifyToken}`,
+        },
+        body: JSON.stringify({
+          playlistId: playlist.id,
+          uris,
+        }),
+      });
+
+      alert("Playlist created! Scroll down to listen.");
+    } catch (err) {
+      console.error("Error creating playlist:", err);
+      alert("Failed to create playlist.");
     }
   };
 
+  /* ---------------------------------------------------
+      LOADING STATES
+  --------------------------------------------------- */
   if (loading) {
     return (
       <main className="recipe-page">
@@ -77,21 +185,23 @@ export default function RecipeDetails() {
     );
   }
 
-  const trackEmbedUrl = songData?.randomTrack
-    ? getTrackEmbedUrl(songData.randomTrack.url)
-    : null;
-
+  /* ---------------------------------------------------
+      MAIN UI
+  --------------------------------------------------- */
   return (
     <main className="recipe-page">
       <div className="recipe-page-inner">
-        {/* Top bar */}
         <button className="back-btn" onClick={() => navigate(-1)}>
           ← Back to recipes
         </button>
 
-        {/* Header section: title + meta + summary */}
         <header className="recipe-header">
           <h1 className="recipe-title-main">{recipeInfo.title}</h1>
+
+          {/* ⭐ FAVORITE BUTTON */}
+          <button className="details-fav-btn" onClick={toggleFavorite}>
+            {isFavorite ? "❤️ Remove Favorite" : "♡ Add to Favorites"}
+          </button>
 
           <div className="recipe-meta-row">
             {recipeInfo.readyInMinutes && (
@@ -114,11 +224,10 @@ export default function RecipeDetails() {
           )}
         </header>
 
-        {/* Main 2-column layout */}
         <section className="recipe-layout">
-          {/* LEFT COLUMN: image + ingredients + instructions */}
+          {/* LEFT COLUMN */}
           <div className="recipe-main-column">
-            {/* Big image card */}
+            {/* Image */}
             <article className="recipe-card recipe-image-card">
               <img
                 src={recipeInfo.image}
@@ -127,7 +236,7 @@ export default function RecipeDetails() {
               />
             </article>
 
-            {/* Ingredients card */}
+            {/* Ingredients */}
             <article className="recipe-card">
               <h2 className="recipe-section-heading">Ingredients</h2>
               <ul className="ingredients-list">
@@ -146,110 +255,83 @@ export default function RecipeDetails() {
               </ul>
             </article>
 
-            {/* Instructions card */}
+            {/* Instructions */}
             <article className="recipe-card">
               <h2 className="recipe-section-heading">Instructions</h2>
               {recipeInfo.instructions ? (
                 <ol className="instructions-list">
                   {recipeInfo.instructions
-                    .split(/\. +/) 
+                    .split(/\. +/)
                     .map((step) => step.trim())
                     .filter(Boolean)
                     .map((step, index) => (
                       <li key={index} className="instruction-item">
-                        <span className="instruction-number">
-                          {index + 1}
-                        </span>
+                        <span className="instruction-number">{index + 1}</span>
                         <p className="instruction-text">{step}</p>
                       </li>
                     ))}
                 </ol>
               ) : (
-                <p className="instructions-text">
-                  No instructions provided for this recipe.
-                </p>
+                <p>No instructions provided.</p>
               )}
             </article>
           </div>
 
-          {/* RIGHT COLUMN: music pairing card */}
+          {/* RIGHT COLUMN: MUSIC */}
           <aside className="recipe-side-column">
             <article className="recipe-card music-card">
-              <div className="music-card-header">
-                <h2 className="recipe-section-heading">
-                  <span className="music-icon">🎵</span> Music Pairing
-                </h2>
-                <p className="music-subtitle">
-                  The perfect soundtrack for cooking this recipe.
-                </p>
-              </div>
+              <h2 className="recipe-section-heading">
+                <span className="music-icon">🎵</span> Music Pairing
+              </h2>
+              <p className="music-subtitle">
+                A song selected to match this recipe’s vibe.
+              </p>
 
-              {/* Main matching track */}
-              {songData?.randomTrack && (
-                <div className="music-track-card">
-                  <div className="music-track-info">
-                    <p className="music-track-title">
-                      {songData.randomTrack.name}
-                    </p>
+              {/* Random Track */}
+              {selectedTrack ? (
+                <div className="music-recommendations">
+                  <div className="music-track-card small">
+                    <p className="music-track-title">{selectedTrack.name}</p>
                     <p className="music-track-artist">
-                      {songData.randomTrack.artists.join(", ")}
+                      {selectedTrack.artists.map((a) => a.name).join(", ")}
                     </p>
-                  </div>
 
-                  {trackEmbedUrl && (
                     <iframe
-                      src={trackEmbedUrl}
+                      src={`https://open.spotify.com/embed/track/${selectedTrack.id}`}
                       width="100%"
-                      height="80"
+                      height="152"
+                      style={{ borderRadius: "12px", marginTop: "10px" }}
                       frameBorder="0"
                       allow="encrypted-media"
-                      title="Spotify Player"
-                      className="song-embed"
-                    />
-                  )}
+                      title="spotify-track-player"
+                    ></iframe>
+                  </div>
                 </div>
+              ) : (
+                <p>No recommendations found.</p>
               )}
 
-              {/* Playlist preview (list of tracks) */}
-              {showPlaylist && playlist.length > 0 && (
-                <div className="music-playlist-list">
-                  {playlist.map((track, index) => {
-                    const parts = track.url.split("/track/");
-                    if (parts.length < 2) return null;
-                    const trackId = parts[1].split("?")[0];
+              <button
+                type="button"
+                className="music-primary-btn"
+                onClick={handleMakePlaylist}
+              >
+                🎧 Generate Spotify Playlist
+              </button>
 
-                    return (
-                      <div key={index} className="music-track-card small">
-                        <div className="music-track-info">
-                          <p className="music-track-title">{track.name}</p>
-                          <p className="music-track-artist">
-                            {track.artists.join(", ")}
-                          </p>
-                        </div>
-                        <iframe
-                          src={`https://open.spotify.com/embed/track/${trackId}`}
-                          width="100%"
-                          height="64"
-                          allow="encrypted-media"
-                          title={`track-${index}`}
-                          className="song-embed"
-                        />
-                      </div>
-                    );
-                  })}
+              {playlistId && (
+                <div className="playlist-embed-wrapper">
+                  <iframe
+                    src={`https://open.spotify.com/embed/playlist/${playlistId}`}
+                    width="100%"
+                    height="400"
+                    style={{ borderRadius: "12px" }}
+                    frameBorder="0"
+                    allow="encrypted-media"
+                    title="playlist-player"
+                  />
                 </div>
               )}
-
-              {/* Actions */}
-              <div className="music-actions">
-                <button
-                  type="button"
-                  className="music-primary-btn"
-                  onClick={handleMakePlaylist}
-                >
-                  🎧 Add All to Playlist
-                </button>
-              </div>
             </article>
           </aside>
         </section>
