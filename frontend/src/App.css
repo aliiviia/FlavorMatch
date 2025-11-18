@@ -1765,3 +1765,89 @@ a {
 .create-submit:hover {
   background: #1ed760;
 }
+
+/* PAGE WRAPPER */
+.custom-page {
+  background: #0d0d0d;
+  min-height: 100vh;
+  padding: 90px 20px;
+  color: #fff;
+}
+
+.custom-page-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* HEADER STYLES */
+.custom-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.custom-eyebrow {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.custom-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: #1db954; /* Spotify green */
+  margin-bottom: 12px;
+}
+
+.custom-subtitle {
+  color: #b5b5b5;
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 17px;
+}
+
+/* SEARCH BAR */
+.custom-search {
+  display: flex;
+  gap: 12px;
+  margin: 40px auto;
+  max-width: 600px;
+}
+
+.custom-search-input {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #181818;
+  border: 1px solid #333;
+  color: white;
+  font-size: 16px;
+}
+
+.custom-search-input::placeholder {
+  color: #777;
+}
+
+.custom-search-button {
+  padding: 14px 22px;
+  background: #1db954;
+  color: #000;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.custom-search-button:hover {
+  background: #1ed760;
+}
+
+/* RESULTS */
+.custom-results {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.custom-empty {
+  color: #999;
+  font-size: 18px;
+}
