@@ -9,6 +9,7 @@ import CreateRecipePage from "./pages/CreateRecipePage.js";
 import CustomRecipePage from "./pages/CustomRecipePage.js";
 import ExploreCustomRecipesPage from "./pages/ExploreCustomRecipePage.js";
 import "./App.css";
+import FloatingChatBot from "./components/FloatingChatBot";
 
 export default function App() {
   useEffect(() => {
@@ -22,16 +23,21 @@ export default function App() {
   }, []);
 
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/recipes" element={<ExploreRecipesPage />} />
-        <Route path="/recipe/:id" element={<RecipeDetails />} />
-        <Route path="/favorites" element={<FavoritesPage />} />
-        <Route path="/custom" element={<CustomRecipePage />} />
-        <Route path="/create" element={<CreateRecipePage />} />
-        <Route path="/explore" element={<ExploreCustomRecipesPage />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/recipes" element={<ExploreRecipesPage />} />
+          <Route path="/recipe/:id" element={<RecipeDetails />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/custom" element={<CustomRecipePage />} />
+          <Route path="/create" element={<CreateRecipePage />} />
+          <Route path="/explore" element={<ExploreCustomRecipesPage />} />
+        </Route>
+      </Routes>
+
+      {/* Floating chatbot */}
+      <FloatingChatBot />
+    </>
   );
 }
