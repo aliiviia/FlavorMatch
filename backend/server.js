@@ -324,48 +324,102 @@ function getCuisineFromTitle(title) {
   return null;
 }
 
-//  Recipes List Endpoint if spoonacular API is not available fallback to mock data
 app.get("/api/recipes", async (req, res) => {
   const query = req.query.query?.toLowerCase();
   const spoonacularKey = process.env.SPOONACULAR_KEY;
 
   reenableSpoonacularIfTime();
-  console.log("🔍 Received query:", query);
+
+  /* ------------------------------------------------------
+      1. PAGE LOAD — NO SEARCH QUERY
+      → Try Spoonacular random recipes
+      → If fails → return mock recipes
+  ------------------------------------------------------ */
+  if (!query) {
+    console.log("📌 Loading Explore page default recipes");
+
+    if (!spoonacularEnabled) {
+      console.warn("🚫 Spoonacular disabled — defaulting to mock recipes");
+      return res.json(MOCK_RECIPES);
+    }
+
+    try {
+      const apiRes = await fetch(
+        `https://api.spoonacular.com/recipes/random?number=10&apiKey=${spoonacularKey}`
+      );
+
+      if (!apiRes.ok) throw new Error("Random Spoonacular fetch failed");
+
+      const data = await apiRes.json();
+
+      const randomRecipes = data.recipes.map((r) => ({
+        id: r.id,
+        title: r.title,
+        image: r.image,
+        readyInMinutes: r.readyInMinutes,
+        servings: r.servings,
+      }));
+
+      return res.json(randomRecipes);
+    } catch (err) {
+      console.warn("⚠️ Spoonacular RANDOM failed:", err.message);
+      disableSpoonacular();
+      return res.json(MOCK_RECIPES);
+    }
+  }
+
+  /* ------------------------------------------------------
+      2. SEARCH MODE — USER ENTERED TEXT
+      → Try Spoonacular search
+      → If fails or no results → search mock data
+  ------------------------------------------------------ */
+  console.log("🔍 Searching for:", query);
 
   if (!spoonacularEnabled) {
-    console.warn("🚫 Spoonacular temporarily disabled — using mock data.");
-    const filtered = MOCK_RECIPES.filter((r) =>
+    console.warn("🚫 Spoonacular disabled — using mock fallback search");
+    const mockResults = MOCK_RECIPES.filter((r) =>
       r.title.toLowerCase().includes(query)
     );
-    return res.json(filtered.length ? filtered : MOCK_RECIPES.slice(0, 5));
+    return res.json(mockResults);
   }
 
   try {
     const apiRes = await fetch(
-      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=5&apiKey=${spoonacularKey}`
+      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=10&apiKey=${spoonacularKey}`
     );
 
-    if (!apiRes.ok)
-      throw new Error(`Spoonacular failed (status ${apiRes.status})`);
+    if (!apiRes.ok) throw new Error("Spoonacular search failed");
 
     const data = await apiRes.json();
 
-    const recipes = data.results.map((r) => ({
-      id: r.id,
-      title: r.title,
-      image: r.image,
-    }));
+    if (data.results?.length > 0) {
+      return res.json(
+        data.results.map((r) => ({
+          id: r.id,
+          title: r.title,
+          image: r.image,
+          readyInMinutes: r.readyInMinutes,
+          servings: r.servings,
+        }))
+      );
+    }
 
-    res.json(recipes);
-  } catch (err) {
-    console.warn("⚠️ Spoonacular failed in /api/recipes:", err.message);
-    disableSpoonacular();
-    const filtered = MOCK_RECIPES.filter((r) =>
+    // No Spoonacular results → fallback to mock
+    const fallback = MOCK_RECIPES.filter((r) =>
       r.title.toLowerCase().includes(query)
     );
-    res.json(filtered.length ? filtered : MOCK_RECIPES.slice(0, 5));
+    return res.json(fallback);
+  } catch (err) {
+    console.warn("⚠️ Spoonacular SEARCH failed:", err.message);
+    disableSpoonacular();
+
+    const fallback = MOCK_RECIPES.filter((r) =>
+      r.title.toLowerCase().includes(query)
+    );
+    return res.json(fallback);
   }
 });
+
 
 app.get("/api/autocomplete", async (req, res) => {
   const query = req.query.query?.toLowerCase();
