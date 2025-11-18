@@ -9,29 +9,70 @@ export default function RecipeDetails() {
   const [recipeInfo, setRecipeInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recommendedTracks, setRecommendedTracks] = useState([]);
-  const [selectedTrack, setSelectedTrack] = useState(null); // ⭐ NEW: single random track
+  const [selectedTrack, setSelectedTrack] = useState(null);
   const [playlistId, setPlaylistId] = useState(null);
+
+  // ⭐ FAVORITES STATE
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const spotifyToken = localStorage.getItem("spotify_token");
 
   /* ---------------------------------------------------
-      FETCH RECIPE INFO + GET RECOMMENDATIONS
+        CHECK IF RECIPE IS FAVORITE ON LOAD
+  --------------------------------------------------- */
+  useEffect(() => {
+    const favs = JSON.parse(localStorage.getItem("favorites")) || [];
+    const exists = favs.some((f) => String(f.id) === String(id));
+    setIsFavorite(exists);
+  }, [id]);
+
+  /* ---------------------------------------------------
+        TOGGLE FAVORITE
+  --------------------------------------------------- */
+  const toggleFavorite = () => {
+    let favs = JSON.parse(localStorage.getItem("favorites")) || [];
+    const exists = favs.some((f) => String(f.id) === String(id));
+
+    if (exists) {
+      // remove
+      favs = favs.filter((f) => String(f.id) !== String(id));
+      setIsFavorite(false);
+    } else {
+      const difficulty = recipeInfo.readyInMinutes <= 15
+      ? "Easy"
+      : recipeInfo.readyInMinutes <= 40
+      ? "Medium"
+      : "Hard";
+
+      // add favorite
+      favs.push({
+      id: recipeInfo.id,
+      title: recipeInfo.title,
+      image: recipeInfo.image,
+      time: `${recipeInfo.readyInMinutes} min`,
+      difficulty: difficulty,
+      tags: recipeInfo.cuisines || [],
+      });
+      setIsFavorite(true);
+    }
+
+    localStorage.setItem("favorites", JSON.stringify(favs));
+  };
+
+  /* ---------------------------------------------------
+      FETCH RECIPE INFO + MUSIC RECOMMENDATIONS
   --------------------------------------------------- */
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        // (1) Fetch recipe info
         const recipeRes = await fetch(
           `http://127.0.0.1:5001/api/recipeInfo?id=${id}`
         );
         const recipe = await recipeRes.json();
         setRecipeInfo(recipe);
 
-        // (2) Get cuisine returned from backend
         const cuisine = recipe.cuisine;
-        console.log("Cuisine detected:", cuisine);
 
-        // (3) Fetch recommended songs from backend
         const recRes = await fetch("http://127.0.0.1:5001/api/recommendations", {
           method: "POST",
           headers: {
@@ -42,12 +83,10 @@ export default function RecipeDetails() {
         });
 
         const recData = await recRes.json();
-        console.log("Recommendation response:", recData);
 
         const tracks = recData.tracks || [];
         setRecommendedTracks(tracks);
 
-        // (4) Pick one random track to display + embed
         if (tracks.length > 0) {
           const random =
             tracks[Math.floor(Math.random() * tracks.length)];
@@ -78,14 +117,12 @@ export default function RecipeDetails() {
     }
 
     try {
-      // (1) Get Spotify user profile
       const userRes = await fetch("http://127.0.0.1:5001/me", {
         headers: { Authorization: `Bearer ${spotifyToken}` },
       });
 
       const user = await userRes.json();
 
-      // (2) Create playlist
       const playlistRes = await fetch(
         "http://127.0.0.1:5001/api/createPlaylist",
         {
@@ -104,7 +141,6 @@ export default function RecipeDetails() {
       const playlist = await playlistRes.json();
       setPlaylistId(playlist.id);
 
-      // (3) Add all recommended songs to playlist
       const uris = recommendedTracks.map((t) => t.uri);
 
       await fetch("http://127.0.0.1:5001/api/addTracks", {
@@ -127,7 +163,7 @@ export default function RecipeDetails() {
   };
 
   /* ---------------------------------------------------
-      LOADING / ERROR
+      LOADING STATES
   --------------------------------------------------- */
   if (loading) {
     return (
@@ -161,6 +197,11 @@ export default function RecipeDetails() {
 
         <header className="recipe-header">
           <h1 className="recipe-title-main">{recipeInfo.title}</h1>
+
+          {/* ⭐ FAVORITE BUTTON */}
+          <button className="details-fav-btn" onClick={toggleFavorite}>
+            {isFavorite ? "❤️ Remove Favorite" : "♡ Add to Favorites"}
+          </button>
 
           <div className="recipe-meta-row">
             {recipeInfo.readyInMinutes && (
@@ -246,18 +287,15 @@ export default function RecipeDetails() {
                 A song selected to match this recipe’s vibe.
               </p>
 
-              {/* RANDOM SONG + EMBED */}
+              {/* Random Track */}
               {selectedTrack ? (
                 <div className="music-recommendations">
                   <div className="music-track-card small">
                     <p className="music-track-title">{selectedTrack.name}</p>
                     <p className="music-track-artist">
-                      {selectedTrack.artists
-                        .map((a) => a.name)
-                        .join(", ")}
+                      {selectedTrack.artists.map((a) => a.name).join(", ")}
                     </p>
 
-                    {/* PLAYABLE TRACK */}
                     <iframe
                       src={`https://open.spotify.com/embed/track/${selectedTrack.id}`}
                       width="100%"
@@ -273,7 +311,6 @@ export default function RecipeDetails() {
                 <p>No recommendations found.</p>
               )}
 
-              {/* Playlist Button */}
               <button
                 type="button"
                 className="music-primary-btn"
@@ -282,7 +319,6 @@ export default function RecipeDetails() {
                 🎧 Generate Spotify Playlist
               </button>
 
-              {/* Playlist Embed */}
               {playlistId && (
                 <div className="playlist-embed-wrapper">
                   <iframe
