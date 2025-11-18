@@ -4,7 +4,7 @@ import { MOCK_RECIPES } from "../mockRecipes";
 
 export default function ExploreRecipesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [recipes, setRecipes] = useState([]); // ← start empty
+  const [recipes, setRecipes] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
@@ -14,13 +14,12 @@ export default function ExploreRecipesPage() {
   const navigate = useNavigate();
 
   /* ---------------------------------------------------------
-      LOAD DEFAULT RECIPES ON PAGE LOAD (BACKEND OR MOCK)
+      LOAD DEFAULT RECIPES ON PAGE LOAD
   --------------------------------------------------------- */
   useEffect(() => {
     const loadInitialRecipes = async () => {
       try {
         const res = await fetch("http://127.0.0.1:5001/api/recipes");
-
         if (!res.ok) throw new Error("Backend fetch failed");
 
         const data = await res.json();
@@ -75,12 +74,12 @@ export default function ExploreRecipesPage() {
           }))
         );
       } else {
-        setRecipes([]); // no results
+        setRecipes([]);
       }
     } catch (err) {
       console.error(err);
       setError("Something went wrong searching recipes.");
-      setRecipes(MOCK_RECIPES); // fallback so page never looks empty
+      setRecipes(MOCK_RECIPES);
     } finally {
       setLoading(false);
     }
@@ -131,42 +130,39 @@ export default function ExploreRecipesPage() {
   return (
     <main className="explore-recipes-page">
       <div className="explore-container">
-        {/* Header */}
+
+        {/* HEADER */}
         <header className="explore-header">
-          <h1 className="explore-title">
-            Explore <span className="title-green">Recipes</span>
-          </h1>
-          <p className="explore-subtitle">
-            Find your next culinary adventure with perfectly paired music
+          <p className="custom-eyebrow">Discover</p>
+          <h1 className="custom-title">Explore Recipes</h1>
+          <p className="custom-subtitle">
+            Search any dish by name, cuisine, or ingredients — and explore curated recipe music pairings.
           </p>
         </header>
 
-        {/* Search */}
-        <form
-          className="search-input-wrapper"
-          style={{ position: "relative" }}
-          onSubmit={handleSearch}
-        >
-          <span className="search-icon">🔍</span>
-
+        <form className="custom-search" onSubmit={handleSearch} style={{ position: "relative" }}>
           <input
             type="text"
-            className="explore-search-input"
-            placeholder="Search for recipes..."
+            className="custom-search-input"
+            placeholder="Search for a recipe..."
             value={searchQuery}
             onChange={handleInputChange}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
             onFocus={() => {
               if (suggestions.length > 0) setShowSuggestions(true);
             }}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
           />
 
-          {/* Autocomplete Dropdown */}
+          <button type="submit" className="custom-search-button">
+            🔍 Search
+          </button>
+
+          {/* AUTOCOMPLETE DROPDOWN */}
           {showSuggestions && suggestions.length > 0 && (
             <ul className="autocomplete-list">
-              {suggestions.map((recipe, i) => (
+              {suggestions.map((recipe, index) => (
                 <li
-                  key={recipe.id || i}
+                  key={recipe.id || index}
                   className="autocomplete-item"
                   onMouseDown={() => {
                     setSearchQuery(recipe.title);
@@ -181,28 +177,28 @@ export default function ExploreRecipesPage() {
           )}
         </form>
 
-        {/* Loading */}
+        {/* LOADING */}
         {loading && (
           <div className="loading-state">
             <p>Loading delicious recipes...</p>
           </div>
         )}
 
-        {/* Error */}
+        {/* ERROR */}
         {!loading && error && (
           <div className="loading-state">
             <p>{error}</p>
           </div>
         )}
 
-        {/* No Results */}
+        {/* NO RESULTS */}
         {!loading && hasSearched && recipes.length === 0 && !error && (
           <div className="loading-state">
             <p>No recipes found. Try another search.</p>
           </div>
         )}
 
-        {/* Recipes Grid */}
+        {/* RECIPES GRID */}
         {!loading && recipes.length > 0 && (
           <div className="recipes-grid">
             {recipes.map((recipe) => (
@@ -222,19 +218,15 @@ export default function ExploreRecipesPage() {
 
                 <div className="recipe-content">
                   <h3 className="recipe-title">{recipe.title}</h3>
-
                   <div className="recipe-meta">
                     {recipe.readyInMinutes && (
                       <span className="recipe-time">
-                        <span className="meta-icon">⏱</span>
-                        {recipe.readyInMinutes} min
+                        ⏱ {recipe.readyInMinutes} min
                       </span>
                     )}
-
                     {recipe.servings && (
                       <span className="recipe-servings">
-                        <span className="meta-icon">👥</span>
-                        {recipe.servings} servings
+                        👥 {recipe.servings} servings
                       </span>
                     )}
                   </div>

@@ -1938,6 +1938,7 @@ a {
   font-size: 17px;
 }
 
+/*CHATBOT CSS*/
 /* ========= Floating Button ========= */
 .chatbot-button {
   position: fixed;
@@ -1945,16 +1946,22 @@ a {
   right: 24px;
   width: 60px;
   height: 60px;
-  background-color: #1db954;
+  background-color: #1db954;  /* FIXED */
   border-radius: 50%;
   border: none;
-  color: white;
-  font-size: 28px;
+  padding: 0;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
+  box-shadow: none;              
   z-index: 9999;
 }
+
+.chatbot-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;    
+  border-radius: 50%;       
+}
+
 
 .chatbot-button:hover {
   transform: scale(1.1);
@@ -2036,14 +2043,6 @@ a {
   color: #fff;
 }
 
-/* Recipe Bubbles (Bot Recommendations) */
-.recipe-bubble {
-  background: #333;
-  margin-top: 8px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-size: 14px;
-}
 
 /* Input */
 .chatbot-input {
@@ -2119,3 +2118,4 @@ a {
   50% { transform: translateY(-4px); opacity: 1; }
   100% { transform: translateY(0); opacity: 0.4; }
 }
+/*END OF CHATBOT CSS*/

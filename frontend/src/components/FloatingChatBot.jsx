@@ -69,7 +69,11 @@ export default function FloatingChatBot() {
     <>
       {/* Floating button */}
       <button className="chatbot-button" onClick={toggleChat}>
-        💬
+          <img
+          src="/FlavorBot.png"
+          alt=""
+          className="chatbot-icon"
+        />
       </button>
 
       {/* Chat window */}
