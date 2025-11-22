@@ -1,5 +1,9 @@
 import { NavLink } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import {
+  IconChefHat,
+  IconToolsKitchen2
+} from "@tabler/icons-react";
 
 export default function Navbar({ user }) {
   const [open, setOpen] = useState(false);
@@ -24,7 +28,12 @@ export default function Navbar({ user }) {
     <header className="nav">
       <div className="nav-inner">
         <NavLink to="/" className="nav-logo">
-          <span className="nav-logo-icon">🍴</span>
+          <div className="nav-logo-icon flex items-center gap-1">
+            <IconToolsKitchen2 color="#1db954" stroke={2} size={26} />
+            <IconChefHat color="#1db954" stroke={2} size={26} />
+            
+          </div>
+
           <span className="nav-logo-text">FlavorMatch</span>
         </NavLink>
 

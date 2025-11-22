@@ -1,10 +1,11 @@
+// src/pages/ExploreRecipesPage.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MOCK_RECIPES } from "../mockRecipes";
 
 export default function ExploreRecipesPage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [recipes, setRecipes] = useState([]); 
+  const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
@@ -13,9 +14,7 @@ export default function ExploreRecipesPage() {
 
   const navigate = useNavigate();
 
-  /* ---------------------------------------------------------
-      LOAD DEFAULT RECIPES ON PAGE LOAD
-  --------------------------------------------------------- */
+  // ----------------- LOAD DEFAULT RECIPES -----------------
   useEffect(() => {
     const loadInitialRecipes = async () => {
       try {
@@ -42,9 +41,7 @@ export default function ExploreRecipesPage() {
     loadInitialRecipes();
   }, []);
 
-  /* ---------------------------------------------------------
-      MAIN SEARCH
-  --------------------------------------------------------- */
+  // ----------------- MAIN SEARCH -----------------
   const handleSearch = async (e) => {
     e.preventDefault();
     const query = searchQuery.trim();
@@ -58,7 +55,6 @@ export default function ExploreRecipesPage() {
       const res = await fetch(
         `http://127.0.0.1:5001/api/recipes?query=${encodeURIComponent(query)}`
       );
-
       if (!res.ok) throw new Error("Failed to fetch recipes");
 
       const data = await res.json();
@@ -85,9 +81,7 @@ export default function ExploreRecipesPage() {
     }
   };
 
-  /* ---------------------------------------------------------
-      AUTOCOMPLETE
-  --------------------------------------------------------- */
+  // ----------------- AUTOCOMPLETE -----------------
   const handleInputChange = async (e) => {
     const value = e.target.value;
     setSearchQuery(value);
@@ -104,7 +98,6 @@ export default function ExploreRecipesPage() {
           value
         )}`
       );
-
       if (!res.ok) throw new Error("Autocomplete failed");
 
       const data = await res.json();
@@ -130,75 +123,84 @@ export default function ExploreRecipesPage() {
   return (
     <main className="explore-recipes-page">
       <div className="explore-container">
-
-        {/* HEADER */}
+        {/* HEADER – matches screenshot */}
         <header className="explore-header">
-          <p className="custom-eyebrow">Discover</p>
-          <h1 className="custom-title">Explore Recipes</h1>
-          <p className="custom-subtitle">
-            Search any dish by name, cuisine, or ingredients — and explore curated recipe music pairings.
+          <p className="custom-eyebrow" style={{ letterSpacing: "0.18em" }}>
+            DISCOVER
           </p>
+          <h1 className="explore-title">
+            <span className="title-green">Explore Recipes</span>
+          </h1>
+          <p className="explore-subtitle">
+            Search any dish by name, cuisine, or ingredients — and explore curated recipe 
+            <br />
+            music pairings.
+          </p>
+
         </header>
 
-        <form className="custom-search" onSubmit={handleSearch} style={{ position: "relative" }}>
-          <input
-            type="text"
-            className="custom-search-input"
-            placeholder="Search for a recipe..."
-            value={searchQuery}
-            onChange={handleInputChange}
-            onFocus={() => {
-              if (suggestions.length > 0) setShowSuggestions(true);
-            }}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-          />
+        {/* SEARCH BAR */}
+        <form className="explore-search-form" onSubmit={handleSearch}>
+          <div className="search-input-wrapper">
+            <span className="search-icon"></span>
+            <input
+              type="text"
+              className="explore-search-input"
+              placeholder="Search for a recipe..."
+              value={searchQuery}
+              onChange={handleInputChange}
+              onFocus={() => {
+                if (suggestions.length > 0) setShowSuggestions(true);
+              }}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            />
 
-          <button type="submit" className="custom-search-button">
-            🔍 Search
+            {/* AUTOCOMPLETE DROPDOWN */}
+            {showSuggestions && suggestions.length > 0 && (
+              <ul className="autocomplete-list">
+                {suggestions.map((recipe, index) => (
+                  <li
+                    key={recipe.id || index}
+                    className="autocomplete-item"
+                    onMouseDown={() => {
+                      setSearchQuery(recipe.title);
+                      setShowSuggestions(false);
+                      navigate(`/recipe/${recipe.id}`);
+                    }}
+                  >
+                    {recipe.title}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* green pill button, same line as input */}
+          <button type="submit" className="spotify-btn">
+            Search
           </button>
-
-          {/* AUTOCOMPLETE DROPDOWN */}
-          {showSuggestions && suggestions.length > 0 && (
-            <ul className="autocomplete-list">
-              {suggestions.map((recipe, index) => (
-                <li
-                  key={recipe.id || index}
-                  className="autocomplete-item"
-                  onMouseDown={() => {
-                    setSearchQuery(recipe.title);
-                    setShowSuggestions(false);
-                    navigate(`/recipe/${recipe.id}`);
-                  }}
-                >
-                  {recipe.title}
-                </li>
-              ))}
-            </ul>
-          )}
         </form>
 
-        {/* LOADING */}
+        {/* LOADING / ERROR / EMPTY STATES */}
         {loading && (
           <div className="loading-state">
             <p>Loading delicious recipes...</p>
           </div>
         )}
 
-        {/* ERROR */}
         {!loading && error && (
           <div className="loading-state">
             <p>{error}</p>
           </div>
         )}
 
-        {/* NO RESULTS */}
         {!loading && hasSearched && recipes.length === 0 && !error && (
           <div className="loading-state">
             <p>No recipes found. Try another search.</p>
           </div>
         )}
 
-        {/* RECIPES GRID */}
+        {/* RECIPES GRID – 3 per row on desktop */}
         {!loading && recipes.length > 0 && (
           <div className="recipes-grid">
             {recipes.map((recipe) => (
@@ -221,12 +223,14 @@ export default function ExploreRecipesPage() {
                   <div className="recipe-meta">
                     {recipe.readyInMinutes && (
                       <span className="recipe-time">
-                        ⏱ {recipe.readyInMinutes} min
+                        <span className="meta-icon">⏱</span>
+                        {recipe.readyInMinutes} min
                       </span>
                     )}
                     {recipe.servings && (
                       <span className="recipe-servings">
-                        👥 {recipe.servings} servings
+                        <span className="meta-icon">👥</span>
+                        {recipe.servings} servings
                       </span>
                     )}
                   </div>
