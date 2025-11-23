@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateRecipePage() {
   const [title, setTitle] = useState("");
@@ -8,10 +9,53 @@ export default function CreateRecipePage() {
   const [instructions, setInstructions] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
+  const navigate = useNavigate();
+
+  // 🟢 Check Spotify auth
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("spotify_token");
+    if (token) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      alert("You must log in with Spotify to create a recipe.");
+      return;
+    }
+
     alert("Recipe created!");
   };
+
+  if (!isAuthenticated) {
+    return (
+      <main className="create-page">
+        <div className="create-inner" style={{ textAlign: "center", paddingTop: "60px" }}>
+          <h1 className="create-title">Sign In Required</h1>
+          <p className="create-subtitle">
+            You must log in with Spotify to create a recipe.
+          </p>
+
+          <button
+            className="create-submit"
+            style={{ marginTop: "30px" }}
+            onClick={() => {
+              window.location.href = "http://127.0.0.1:5001/login";
+            }}
+          >
+            Sign in with Spotify
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="create-page">

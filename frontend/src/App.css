@@ -2119,3 +2119,8 @@ a {
   100% { transform: translateY(0); opacity: 0.4; }
 }
 /*END OF CHATBOT CSS*/
+
+.create-submit {
+  border-radius: 30px;
+}
+
