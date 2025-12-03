@@ -74,7 +74,7 @@ export default function RecipeDetails() {
 
         const cuisine = recipe.cuisine;
 
-        const recRes = await fetch("${API_URL}/api/recommendations", {
+        const recRes = await fetch(`${API_URL}/api/recommendations`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
