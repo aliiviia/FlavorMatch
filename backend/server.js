@@ -100,7 +100,8 @@ app.get("/login", (req, res) => {
     ].join(" ")
   });
 
-  res.redirect(`${authorizeUrl}?${params.toString()}`);
+res.redirect(process.env.FRONTEND_URL + "/?access_token=" + access_token);
+
 });
 
 
@@ -479,6 +480,6 @@ app.get("/api/autocomplete", async (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
