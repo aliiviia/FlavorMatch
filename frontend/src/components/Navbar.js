@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function Navbar({ user }) {
   const [open, setOpen] = useState(false);
@@ -80,7 +81,7 @@ export default function Navbar({ user }) {
             <button
               className="spotify-btn"
               onClick={() => {
-                window.location.href = "http://127.0.0.1:5001/login";
+                window.location.href = "${API_URL}/login";
               }}
             >
               Connect Spotify
