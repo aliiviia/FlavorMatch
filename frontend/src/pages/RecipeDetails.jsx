@@ -118,14 +118,14 @@ export default function RecipeDetails() {
     }
 
     try {
-      const userRes = await fetch("${API_URL}/me", {
+      const userRes = await fetch(`${API_URL}/me`, {
         headers: { Authorization: `Bearer ${spotifyToken}` },
       });
 
       const user = await userRes.json();
 
       const playlistRes = await fetch(
-        "${API_URL}/api/createPlaylist",
+        `${API_URL}/api/createPlaylist`,
         {
           method: "POST",
           headers: {
@@ -144,7 +144,7 @@ export default function RecipeDetails() {
 
       const uris = recommendedTracks.map((t) => t.uri);
 
-      await fetch("${API_URL}/api/addTracks", {
+      await fetch(`${API_URL}/api/addTracks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

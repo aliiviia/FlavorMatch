@@ -81,7 +81,7 @@ export default function Navbar({ user }) {
             <button
               className="spotify-btn"
               onClick={() => {
-                window.location.href = "${API_URL}/login";
+                window.location.href = `${API_URL}/login`;
               }}
             >
               Connect Spotify

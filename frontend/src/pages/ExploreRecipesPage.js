@@ -19,7 +19,7 @@ export default function ExploreRecipesPage() {
   useEffect(() => {
     const loadInitialRecipes = async () => {
       try {
-        const res = await fetch("${API_URL}/api/recipes");
+        const res = await fetch(`${API_URL}/api/recipes`);
         if (!res.ok) throw new Error("Backend fetch failed");
 
         const data = await res.json();

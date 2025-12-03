@@ -11,7 +11,7 @@ export default function AppLayout() {
     const token = localStorage.getItem("spotify_token");
     if (!token) return;
 
-    fetch("${API_URL}/me", {
+    fetch(`${API_URL}/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
