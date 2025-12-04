@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function AppLayout() {
   const [user, setUser] = useState(null);

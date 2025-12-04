@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MOCK_RECIPES } from "../mockRecipes";
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function ExploreRecipesPage() {
   const [searchQuery, setSearchQuery] = useState("");
