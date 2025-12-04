@@ -8,6 +8,7 @@ import {
 // src/pages/RecipeDetails.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function RecipeDetails() {
   const { id } = useParams();
@@ -68,7 +69,7 @@ export default function RecipeDetails() {
     const fetchDetails = async () => {
       try {
         const recipeRes = await fetch(
-          `http://127.0.0.1:5001/api/recipeInfo?id=${id}`
+          `${API_URL}/api/recipeInfo?id=${id}`
         );
         const recipe = await recipeRes.json();
         setRecipeInfo(recipe);
@@ -76,7 +77,7 @@ export default function RecipeDetails() {
         // use cuisine (or fallback) for music pairing
         const cuisine = recipe.cuisine || recipe.cuisines?.[0] || "chill";
 
-        const recRes = await fetch("http://127.0.0.1:5001/api/recommendations", {
+        const recRes = await fetch(`${API_URL}/api/recommendations`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -115,13 +116,13 @@ export default function RecipeDetails() {
     }
 
     try {
-      const userRes = await fetch("http://127.0.0.1:5001/me", {
+      const userRes = await fetch(`${API_URL}/me`, {
         headers: { Authorization: `Bearer ${spotifyToken}` },
       });
       const user = await userRes.json();
 
       const playlistRes = await fetch(
-        "http://127.0.0.1:5001/api/createPlaylist",
+        `${API_URL}/api/createPlaylist`,
         {
           method: "POST",
           headers: {
@@ -140,7 +141,7 @@ export default function RecipeDetails() {
 
       const uris = recommendedTracks.map((t) => t.uri);
 
-      await fetch("http://127.0.0.1:5001/api/addTracks", {
+      await fetch(`${API_URL}/api/addTracks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
