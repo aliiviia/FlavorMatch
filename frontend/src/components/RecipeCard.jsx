@@ -9,40 +9,52 @@ function RecipeCard({ id, title, image, time, difficulty, tags = [] }) {
   /* ---------------------------------------------------
       Check if this recipe is already in favorites
   --------------------------------------------------- */
-  useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    const exists = favorites.some((f) => f.id === id);
+useEffect(() => {
+  const user_id = localStorage.getItem("user_id");
+  if (!user_id) return;
+
+  async function checkFavorite() {
+    const res = await fetch(`${API_URL}/favorites/${user_id}`);
+    const data = await res.json();
+    const exists = data.some((f) => f.recipe_id === id);
     setIsFavorite(exists);
-  }, [id]);
+  }
 
-  /* ---------------------------------------------------
-      Toggle favorite
-  --------------------------------------------------- */
-  const toggleFavorite = (e) => {
-    e.stopPropagation();
+  checkFavorite();
+}, [id]);
 
-    let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-    const exists = favorites.some((f) => f.id === id);
 
-    if (exists) {
-      // Remove from favorites
-      favorites = favorites.filter((f) => f.id !== id);
-      setIsFavorite(false);
-    } else {
-      // Add to favorites
-      favorites.push({
-        id,
-        title,
-        image,
-        time,
-        difficulty,
-        tags,
-      });
-      setIsFavorite(true);
-    }
+/* ---------------------------------------------------
+      Toggle favorite IN DATABASE
+--------------------------------------------------- */
+const toggleFavorite = async (e) => {
+  e.stopPropagation();
 
-    localStorage.setItem("favorites", JSON.stringify(favorites));
-  };
+  const user_id = localStorage.getItem("user_id");
+  if (!user_id) {
+    alert("Please log in first");
+    return;
+  }
+
+  if (isFavorite) {
+    // REMOVE FAVORITE (DELETE)
+    await fetch(`${API_URL}/favorites`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, recipe_id: id }),
+    });
+    setIsFavorite(false);
+  } else {
+    // ADD FAVORITE (POST)
+    await fetch(`${API_URL}/favorites`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, recipe_id: id }),
+    });
+    setIsFavorite(true);
+  }
+};
+
 
   /* ---------------------------------------------------
       MAIN CARD (UI unchanged)

@@ -5,15 +5,15 @@ import { IconChefHat, IconSparkles, IconMusic } from "@tabler/icons-react";
 import "../styles/Home.css";
 
 export default function Home() {
-  // const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const navigate = useNavigate();
 
-  // const handleSubscribe = () => {
-  //   if (!email) return;
-  //   alert(`Thank you for subscribing with ${email}!`);
-  //   setEmail("");
-  // };
+  const handleSubscribe = () => {
+    if (!email) return;
+    alert(`Thank you for subscribing with ${email}!`);
+    setEmail("");
+  };
 
   // ---- Load real recipes for Featured Pairings ----
   useEffect(() => {
@@ -95,17 +95,6 @@ export default function Home() {
                 <IconChefHat color="#ffffff" stroke={2} size={20} />
               </div>
               Explore Recipes
-            </button>
-
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={() => console.log("Connect Spotify")}
-            >
-              <div className="spotify-icon">
-                <IconMusic color="#1db954" stroke={2} size={20} />
-              </div>
-              Connect Spotify
             </button>
           </div>
         </div>

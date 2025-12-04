@@ -4,98 +4,32 @@ import { useNavigate } from "react-router-dom";
 import { IconHeartFilled } from "@tabler/icons-react";
 import "../styles/Recipes.css";
 
-// Example rows shown when there are no real favorites yet
-const placeholderPairings = [
-  {
-    id: "ph-1",
-    title: "Carne Asada",
-    cuisine: "Mexican",
-    chef: "Chef Maria Rodriguez",
-    addedAt: "5 days ago",
-    time: "45 min",
-    image: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg",
-  },
-  {
-    id: "ph-2",
-    title: "Sushi Rolls",
-    cuisine: "Japanese",
-    chef: "Chef Takeshi Yamamoto",
-    addedAt: "1 week ago",
-    time: "30 min",
-    image: "https://images.pexels.com/photos/2098085/pexels-photo-2098085.jpeg",
-  },
-  {
-    id: "ph-3",
-    title: "Pad Thai",
-    cuisine: "Thai",
-    chef: "Chef Somchai Patel",
-    addedAt: "2 weeks ago",
-    time: "25 min",
-    image: "https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg",
-  },
-  {
-    id: "ph-4",
-    title: "Chicken Tikka Masala",
-    cuisine: "Indian",
-    chef: "Chef Priya Sharma",
-    addedAt: "3 weeks ago",
-    time: "50 min",
-    image: "https://images.pexels.com/photos/1437268/pexels-photo-1437268.jpeg",
-  },
-  {
-    id: "ph-5",
-    title: "Greek Salad",
-    cuisine: "Greek",
-    chef: "Chef Dimitri Kostas",
-    addedAt: "1 month ago",
-    time: "15 min",
-    image: "https://images.pexels.com/photos/1435907/pexels-photo-1435907.jpeg",
-  },
-  {
-    id: "ph-6",
-    title: "Spaghetti Carbonara",
-    cuisine: "Italian",
-    chef: "Chef Giovanni Rossi",
-    addedAt: "1 month ago",
-    time: "20 min",
-    image: "https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg",
-  },
-  {
-    id: "ph-7",
-    title: "Beef Tacos",
-    cuisine: "Mexican",
-    chef: "Chef Carlos Mendez",
-    addedAt: "2 months ago",
-    time: "35 min",
-    image: "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg",
-  },
-  {
-    id: "ph-8",
-    title: "Ramen Bowl",
-    cuisine: "Japanese",
-    chef: "Chef Kenji Tanaka",
-    addedAt: "2 months ago",
-    time: "60 min",
-    image: "https://images.pexels.com/photos/884600/pexels-photo-884600.jpeg",
-  },
-];
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
-  const [pairings, setPairings] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
-  // Load real favorites from localStorage
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("favorites")) || [];
-    setPairings(saved);
+    const userId = localStorage.getItem("user_id");
+
+    if (!userId) return; // no logged-in user
+
+    async function fetchFavorites() {
+      try {
+        const res = await fetch(`${API_URL}/favorites/${userId}`);
+        const data = await res.json();
+        setFavorites(data);
+      } catch (err) {
+        console.error("Failed to load favorites:", err);
+      }
+    }
+
+    fetchFavorites();
   }, []);
 
-  // Use placeholders if there are no favorites yet
-  const usePlaceholder = pairings.length === 0;
-  const displayList = usePlaceholder ? placeholderPairings : pairings;
-
   const recipeCount =
-    displayList.length === 1 ? "1 recipe" : `${displayList.length} recipes`;
+    favorites.length === 1 ? "1 recipe" : `${favorites.length} recipes`;
 
   return (
     <main className="favorites-page">
@@ -106,24 +40,23 @@ export default function FavoritesPage() {
             <IconHeartFilled
               className="favorites-cover-icon"
               size={90}
-              color="#ffffff"   // solid white fill
+              color="#ffffff"
             />
           </div>
-
-
 
           <div className="favorites-meta">
             <span className="favorites-label">PLAYLIST</span>
             <h1 className="favorites-title-hero">Liked Recipes</h1>
-            <p className="favorites-meta-sub">FlavorMatch · {recipeCount}</p>
+            <p className="favorites-meta-sub">
+              FlavorMatch · {recipeCount}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* TABLE OF RECIPES */}
+      {/* TABLE OF REAL FAVORITES */}
       <section className="favorites-body">
         <div className="favorites-table">
-          {/* Header row */}
           <div className="favorites-table-header">
             <div>#</div>
             <div>TITLE</div>
@@ -132,23 +65,14 @@ export default function FavoritesPage() {
             <div className="favorites-time-col">⏱</div>
           </div>
 
-          {/* Data rows */}
-          {displayList.map((item, index) => (
+          {favorites.map((item, index) => (
             <div
-              key={item.id}
+              key={item.recipe_id}
               className="favorites-row"
-              onClick={() => {
-                // Only navigate for real favorites, not placeholders
-                if (!usePlaceholder) {
-                  navigate(`/recipe/${item.id}`);
-                }
-              }}
-              style={{ cursor: usePlaceholder ? "default" : "pointer" }}
+              onClick={() => navigate(`/recipe/${item.recipe_id}`)}
             >
-              {/* index */}
               <div className="favorites-col-index">{index + 1}</div>
 
-              {/* image + title + cuisine */}
               <div className="favorites-col-title">
                 <img
                   src={item.image}
@@ -158,24 +82,21 @@ export default function FavoritesPage() {
                 <div className="favorites-row-text">
                   <p className="favorites-row-title">{item.title}</p>
                   <p className="favorites-row-sub">
-                    {item.cuisine || item.tags?.[0] || "Recipe"}
+                    {item.cuisine || "Recipe"}
                   </p>
                 </div>
               </div>
 
-              {/* chef */}
               <div className="favorites-col-chef">
                 {item.chef || "Unknown Chef"}
               </div>
 
-              {/* date added */}
               <div className="favorites-col-added">
-                {item.addedAt || "Recently"}
+                {item.added_at?.slice(0, 10) || "Recently"}
               </div>
 
-              {/* time */}
               <div className="favorites-col-time">
-                {item.time || item.duration || "—"}
+                {item.time || "—"}
               </div>
             </div>
           ))}

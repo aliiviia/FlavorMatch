@@ -58,31 +58,40 @@
 .search-input-wrapper {
   position: relative;
   flex: 1;
+  display: flex;
+  align-items: center;
+
+  background: #2b2b2b;         /* pill background */
+  border-radius: 999px;
+  height: 60px;
+  padding-left: 110px;         /* room for the filter */
+  padding-right: 22px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.7);
 }
 
+
 .explore-search-input {
-  width: 100%;
-  height: 60px;
-  padding: 0 22px 0 52px;
-  font-size: 16px;
-  border-radius: 999px;
+  flex: 1;
+  height: 100%;
   border: none;
+  background: transparent;
   outline: none;
-  background: #2b2b2b;
-  color: #ffffff;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
-  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  color: white;
+  font-size: 16px;
 }
+
+
 
 .explore-search-input::placeholder {
   color: #7f7f7f;
 }
 
 .explore-search-input:focus {
-  background: #262626;
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.85);
-  transform: translateY(-1px);
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
 }
+
 
 .search-icon {
   position: absolute;
@@ -638,3 +647,103 @@
     display: none;
   }
 }
+
+/* Container holds dropdown + input together */
+.search-with-filter {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 110px; /* space for the cuisine filter */
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding-left: 110px;
+  padding-right: 22px;
+  border-radius: 999px;
+  background: #2b2b2b;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.7);
+}
+
+
+.search-input-wrapper:focus-within {
+  background: #262626; /* slightly lighter for focus */
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.85);
+  transform: translateY(-1px);
+}
+
+/* Cuisine filter inside bar */
+.cuisine-filter {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  background: transparent;   /* <-- NO SEPARATE SHAPE */
+  padding: 0;                /* <-- remove inner chip */
+  border-radius: 0;          /* <-- remove rounded box */
+  cursor: pointer;
+  
+  color: #cfcfcf;
+  font-size: 16px;
+  font-weight: 400;
+  min-width: 95px;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: #e5e5e5;
+}
+
+.cuisine-filter:hover {
+  opacity: 0.85;             /* subtle hover only */
+}
+
+
+.cuisine-filter:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Dropdown arrow */
+.dropdown-arrow {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+
+/* Dropdown Menu */
+.cuisine-dropdown-menu {
+  position: absolute;
+  top: 100%;    
+  left: 0;       
+
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+
+  padding: 6px 0;
+  list-style: none;
+
+  width: 160px;
+  z-index: 1000;
+}
+
+
+
+.cuisine-dropdown-menu li {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #ddd;
+}
+
+.cuisine-dropdown-menu li:hover {
+  background: #2a2a2a;
+  color: white;
+}
+

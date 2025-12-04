@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import botIcon from "../images/FlavorBot.png";
+
 import "../styles/Chatbot.css";
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -62,7 +64,7 @@ export default function FloatingChatBot() {
     <>
       {/* Floating button */}
       <button className="chatbot-button" onClick={toggleChat}>
-        <img src="frontend/src/images/FlavorBot.png" alt="" className="chatbot-icon" />
+      <img src={botIcon} alt="Chatbot" className="chatbot-icon" />
       </button>
 
       {open && (
