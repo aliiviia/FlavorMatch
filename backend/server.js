@@ -82,7 +82,7 @@ app.get("/callback", async (req, res) => {
 
     const access_token = tokenResponse.data.access_token;
 
-    // Redirect user back to frontend with their token
+    //Redirect to Vercel frontend
     res.redirect(`${process.env.FRONTEND_URL}/?access_token=${access_token}`);
 
   } catch (err) {
@@ -90,6 +90,7 @@ app.get("/callback", async (req, res) => {
     res.status(500).json({ error: "Failed to authenticate with Spotify" });
   }
 });
+
 
 /* ------------------------------------------------------
    SPOTIFY — FETCH USER PROFILE
