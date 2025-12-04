@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function CreateRecipePage() {
   const [title, setTitle] = useState("");
@@ -47,7 +48,7 @@ export default function CreateRecipePage() {
             className="create-submit"
             style={{ marginTop: "30px" }}
             onClick={() => {
-              window.location.href = "http://127.0.0.1:5001/login";
+              window.location.href = `${API_URL}/login`;
             }}
           >
             Sign in with Spotify
