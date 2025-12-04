@@ -2,17 +2,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconChefHat, IconSparkles, IconMusic } from "@tabler/icons-react";
+import "../styles/Home.css";
 
 export default function Home() {
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const navigate = useNavigate();
 
-  const handleSubscribe = () => {
-    if (!email) return;
-    alert(`Thank you for subscribing with ${email}!`);
-    setEmail("");
-  };
+  // const handleSubscribe = () => {
+  //   if (!email) return;
+  //   alert(`Thank you for subscribing with ${email}!`);
+  //   setEmail("");
+  // };
 
   // ---- Load real recipes for Featured Pairings ----
   useEffect(() => {

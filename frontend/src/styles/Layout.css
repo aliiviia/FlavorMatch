@@ -1,0 +1,278 @@
+/* ==========================================================
+   NAVBAR
+   ========================================================== */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--spotify-gray);
+  backdrop-filter: blur(18px);
+}
+
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--text-main);
+}
+
+.nav-logo-icon {
+  font-size: 24px;
+  color: var(--brand-green);
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+/* ---------- Nav Links ---------- */
+
+.nav-link {
+  padding: 6px 0;
+  font-size: 15px;
+  color: var(--text-subtle);
+  font-weight: 500;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-main);
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 2px;
+  width: 0;
+  border-radius: 999px;
+  background: var(--brand-green);
+  transition: width 0.2s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+.nav-link.active {
+  color: var(--text-main);
+}
+
+/* ==========================================================
+   SPOTIFY BUTTONS (Used in navbar + forms)
+   ========================================================== */
+
+.spotify-btn,
+.connect-btn {
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--brand-green);
+  color: #000;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(29, 185, 84, 0.4);
+}
+
+.spotify-btn:hover,
+.connect-btn:hover {
+  background: var(--brand-green-hover);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================
+   PROFILE AVATAR + DROPDOWN
+   ========================================================== */
+
+.spotify-profile-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.spotify-profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--brand-green);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.6);
+}
+
+.spotify-profile-img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 14px rgba(29, 185, 84, 0.8);
+}
+
+/* Dropdown Base */
+.spotify-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  background: #121212;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #2c2c2c;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 9999;
+}
+
+/* Dropdown Visible */
+.spotify-dropdown.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.spotify-dropdown button {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 6px 10px;
+  width: 100%;
+  text-align: left;
+}
+
+.spotify-dropdown button:hover {
+  color: var(--brand-green);
+}
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
+.footer {
+  background: #000;
+  color: #b3b3b3;
+  padding: 40px 24px 20px;
+  border-top: 1px solid #282828;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.footer-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.footer-cols {
+  display: flex;
+  gap: 60px;
+  font-size: 14px;
+}
+
+.footer-cols h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.footer-cols p {
+  margin: 6px 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-cols p:hover {
+  color: var(--text-subtle);
+}
+
+.footer-icons {
+  display: flex;
+  gap: 16px;
+  font-size: 20px;
+}
+
+.footer-icons span {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-icons span:hover {
+  color: var(--brand-green);
+}
+
+.footer-copy {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ==========================================================
+   RESPONSIVE LAYOUT UTILITIES
+   ========================================================== */
+
+@media (max-width: 768px) {
+  .nav-inner {
+    padding-inline: 20px;
+  }
+
+  .nav-links {
+    gap: 16px;
+  }
+
+  .spotify-btn {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-inner {
+    flex-direction: column;
+    gap: 20px;
+  }
+}

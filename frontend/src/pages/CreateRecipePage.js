@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/Custom.css";
+
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function CreateRecipePage() {

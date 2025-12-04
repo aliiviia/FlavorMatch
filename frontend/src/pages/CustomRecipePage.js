@@ -1,8 +1,9 @@
 // src/pages/CustomRecipePage.jsx
 import { useState, useEffect } from "react";
-import heroImg from "../create.png";
-import box from "../123.png";
-import fourImg from "../4.png";
+import heroImg from "../images/create.png";
+import box from "../images/123.png";
+import fourImg from "../images/4.png";
+import "../styles/Custom.css";
 
 const LOCAL_KEY = "customRecipes";
 

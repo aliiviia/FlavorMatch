@@ -8,8 +8,9 @@ import FavoritesPage from "./pages/FavoritesPage.js";
 import CreateRecipePage from "./pages/CreateRecipePage.js";
 import CustomRecipePage from "./pages/CustomRecipePage.js";
 import ExploreCustomRecipesPage from "./pages/ExploreCustomRecipePage.js";
-import "./App.css";
 import FloatingChatBot from "./components/FloatingChatBot";
+import "./styles/Global.css";
+import "./styles/Layout.css";
 
 export default function App() {
   useEffect(() => {

@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-const API_URL = process.env.REACT_APP_BACKEND_URL;
 import {
   IconChefHat,
   IconToolsKitchen2
 } from "@tabler/icons-react";
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function Navbar({ user }) {
   const [open, setOpen] = useState(false);

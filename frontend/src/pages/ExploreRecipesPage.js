@@ -4,6 +4,8 @@ import { IconClockHour4, IconUsers } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MOCK_RECIPES } from "../mockRecipes";
+import "../styles/Recipes.css";
+
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function ExploreRecipesPage() {
