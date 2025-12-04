@@ -1613,6 +1613,7 @@ a {
   margin: 0 0 18px;
 }
 
+
 /* Ingredients */
 .ingredients-list {
   list-style: none;
@@ -2157,6 +2158,310 @@ a {
   }
 }
 
+/* ========= Recipe Details Overall ========== */
+
+.recipe-page {
+  min-height: 100vh;
+  background: #000000;
+  padding: 50px 20px 80px;
+  color: var(--text-main);
+}
+
+.recipe-page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.recipe-loading {
+  font-size: 16px;
+  color: var(--text-subtle);
+}
+
+/* back link already defined, keep as is */
+
+/* HEADER AREA */
+
+.recipe-header {
+  margin-bottom: 32px;
+}
+
+.recipe-title-main {
+  font-size: 44px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.recipe-header-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* meta pills (time, servings) */
+
+.recipe-meta-pill {
+  font-size: 14px;
+  color: var(--text-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #1b1b1b;
+  border: 1px solid #262626;
+}
+
+.recipe-description {
+  max-width: 800px;
+  font-size: 16px;
+  color: var(--text-subtle);
+  line-height: 1.6;
+}
+
+/* FAVORITE PILL BUTTON – matches screenshot */
+
+.details-fav-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid #4b1b1b;
+  background: #991b1b;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, transform 0.12s ease,
+    box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.details-fav-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(248, 113, 113, 0.45);
+}
+
+.details-fav-btn.is-favorite {
+  background: #b91c1c;
+  border-color: #f97373;
+}
+
+.details-fav-btn.is-favorite:hover {
+  background: #dc2626;
+}
+
+/* LAYOUT */
+
+.recipe-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+  gap: 24px;
+}
+
+.recipe-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.recipe-side-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* CARD BASE – but not clickable on details page */
+
+.recipe-card {
+  background: #181818;
+  border-radius: 18px;
+  padding: 20px 22px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+}
+
+/* IMAGE CARD */
+
+.recipe-image-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.recipe-main-img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+/* SECTION HEADINGS */
+
+.recipe-section-heading {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 18px;
+}
+
+/* INGREDIENTS */
+
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.ingredient-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--brand-green);
+  margin-top: 7px;
+}
+
+/* INSTRUCTIONS */
+
+.instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.instruction-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--brand-green);
+  color: #000;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.instruction-text {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* MUSIC CARD */
+
+.music-card {
+  min-height: 100%;
+}
+
+.music-card-header {
+  margin-bottom: 20px;
+}
+
+.music-icon {
+  margin-right: 6px;
+}
+
+.music-subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-subtle);
+}
+
+.music-track-card {
+  background: #202020;
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  margin-bottom: 16px;
+  border: 1px solid #2c2c2c;
+}
+
+.music-track-card.small {
+  padding: 12px 14px;
+}
+
+.music-track-info {
+  margin-bottom: 8px;
+}
+
+.music-track-title {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.music-track-artist {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-subtle);
+}
+
+.music-actions {
+  margin-top: 20px;
+}
+
+.music-primary-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand-green);
+  color: #000000;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.music-primary-btn:hover {
+  background: var(--brand-green-hover);
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .recipe-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-main-img {
+    height: 240px;
+  }
+}
+.music-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recipe-meta-pill svg {
+  margin-top: -1px;
+}
 
 
 /* =========================================
