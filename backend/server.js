@@ -118,14 +118,15 @@ app.get("/me", async (req, res) => {
 });
 
 /* ------------------------------------------------------
-   SPOTIFY — RECOMMEND SONGS
+   SPOTIFY — RECOMMEND SONGS (FIXED TO INCLUDE .uri)
 ------------------------------------------------------ */
 app.post("/api/recommendations", async (req, res) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
     const { cuisine } = req.body;
 
-    if (!token) return res.status(401).json({ error: "Missing token" });
+    if (!token) 
+      return res.status(401).json({ error: "Missing token" });
 
     const keyword = cuisineGenreMap[cuisine] || cuisine;
 
@@ -135,7 +136,17 @@ app.post("/api/recommendations", async (req, res) => {
     );
 
     const data = await searchRes.json();
-    res.json({ tracks: data.tracks?.items || [] });
+
+    // ⭐ CLEAN TRACKS AND EXPOSE SPOTIFY URI ⭐
+    const cleanedTracks = (data.tracks?.items || []).map((t) => ({
+      id: t.id,
+      name: t.name,
+      artists: t.artists,
+      preview_url: t.preview_url,
+      uri: t.uri,  // <-- REQUIRED FOR PLAYLIST ADDING
+    }));
+
+    res.json({ tracks: cleanedTracks });
 
   } catch (err) {
     console.error("Error in recommendations:", err);
