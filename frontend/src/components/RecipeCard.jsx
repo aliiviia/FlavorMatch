@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import "../styles/Recipes.css";
 
 function RecipeCard({ id, title, image, time, difficulty, tags = [] }) {
   const navigate = useNavigate();

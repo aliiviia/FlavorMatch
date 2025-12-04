@@ -1,7 +1,11 @@
+import { IconClockHour4, IconUsers } from "@tabler/icons-react";
+
 // src/pages/ExploreRecipesPage.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MOCK_RECIPES } from "../mockRecipes";
+import "../styles/Recipes.css";
+
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function ExploreRecipesPage() {
@@ -220,20 +224,22 @@ export default function ExploreRecipesPage() {
 
                 <div className="recipe-content">
                   <h3 className="recipe-title">{recipe.title}</h3>
-                  <div className="recipe-meta">
+                 <div className="recipe-meta">
                     {recipe.readyInMinutes && (
                       <span className="recipe-time">
-                        <span className="meta-icon">⏱</span>
+                        <IconClockHour4 size={16} stroke={1.8} className="meta-icon" />
                         {recipe.readyInMinutes} min
                       </span>
                     )}
+
                     {recipe.servings && (
                       <span className="recipe-servings">
-                        <span className="meta-icon">👥</span>
+                        <IconUsers size={16} stroke={1.8} className="meta-icon" />
                         {recipe.servings} servings
                       </span>
                     )}
                   </div>
+
                 </div>
               </article>
             ))}

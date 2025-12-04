@@ -1,11 +1,8 @@
-/* This file controls the chat bot box that appears on every page. I(Alivia) implented the bot to have
-    - a welcome prompt
-    - a Text input
-    - To appear on each page on the bottom right */
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+import "../styles/Chatbot.css";
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function FloatingChatBot() {
   const [open, setOpen] = useState(false);
@@ -15,14 +12,12 @@ export default function FloatingChatBot() {
 
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, loading]);
 
-  // Open/close chat + send greeting
   function toggleChat() {
     setOpen((prev) => {
       const nowOpen = !prev;
@@ -31,8 +26,7 @@ export default function FloatingChatBot() {
         setMessages([
           {
             sender: "bot",
-            text:
-              "👋 Hi, I'm FlavorBot! Tell me the ingredients you have, and I’ll help you find delicious recipes to try!",
+            text: "👋 Hi, I'm FlavorBot! Tell me the ingredients you have!",
           },
         ]);
       }
@@ -57,13 +51,10 @@ export default function FloatingChatBot() {
 
     const data = await res.json();
 
-    const botMessage = {
-      sender: "bot",
-      text: data.botResponse,
-      recipes: data.recipes,
-    };
-
-    setMessages((prev) => [...prev, botMessage]);
+    setMessages((prev) => [
+      ...prev,
+      { sender: "bot", text: data.botResponse, recipes: data.recipes },
+    ]);
     setLoading(false);
   }
 
@@ -71,21 +62,14 @@ export default function FloatingChatBot() {
     <>
       {/* Floating button */}
       <button className="chatbot-button" onClick={toggleChat}>
-          <img
-          src="/FlavorBot.png"
-          alt=""
-          className="chatbot-icon"
-        />
+        <img src="frontend/src/images/FlavorBot.png" alt="" className="chatbot-icon" />
       </button>
 
-      {/* Chat window */}
       {open && (
         <div className="chatbot-window">
           <div className="chatbot-header">
             <h3>FlavorBot</h3>
-            <button className="close-btn" onClick={toggleChat}>
-              ✖
-            </button>
+            <button className="close-btn" onClick={toggleChat}>✖</button>
           </div>
 
           <div className="chatbot-messages">
@@ -93,15 +77,10 @@ export default function FloatingChatBot() {
               <div key={i} className={`chat-msg ${msg.sender}`}>
                 <p>{msg.text}</p>
 
-                {/* Recipe suggestions with links */}
-                {msg.recipes && msg.recipes.length > 0 && (
+                {msg.recipes?.length > 0 && (
                   <div className="recipe-list">
                     {msg.recipes.map((r) => (
-                      <Link
-                        key={r.id}
-                        to={`/recipe/${r.id}`}
-                        className="recipe-bubble"
-                      >
+                      <Link key={r.id} to={`/recipe/${r.id}`} className="recipe-bubble">
                         {r.title}
                       </Link>
                     ))}
@@ -110,7 +89,6 @@ export default function FloatingChatBot() {
               </div>
             ))}
 
-            {/* Typing animation */}
             {loading && (
               <div className="typing-indicator">
                 <div className="dot"></div>
@@ -122,7 +100,7 @@ export default function FloatingChatBot() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* User Input */}
+          {/* Input */}
           <div className="chatbot-input">
             <input
               type="text"

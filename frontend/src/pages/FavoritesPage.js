@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconHeartFilled } from "@tabler/icons-react";
+import "../styles/Recipes.css";
 
 // Example rows shown when there are no real favorites yet
 const placeholderPairings = [

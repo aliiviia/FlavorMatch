@@ -1,6 +1,9 @@
 import { NavLink } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { IconChefHat, IconToolsKitchen2 } from "@tabler/icons-react";
+import {
+  IconChefHat,
+  IconToolsKitchen2
+} from "@tabler/icons-react";
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 

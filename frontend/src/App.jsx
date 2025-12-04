@@ -1,5 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
+import "./styles/Global.css";
+import "./styles/Layout.css";
 import AppLayout from "./AppLayout";
 import Home from "./pages/Home.jsx";
 import RecipeDetails from "./pages/RecipeDetails.jsx";
@@ -8,7 +10,6 @@ import FavoritesPage from "./pages/FavoritesPage.js";
 import CreateRecipePage from "./pages/CreateRecipePage.js";
 import CustomRecipePage from "./pages/CustomRecipePage.js";
 import ExploreCustomRecipesPage from "./pages/ExploreCustomRecipePage.js";
-import "./App.css";
 
 export default function App() {
   // ---- Spotify token handler ----

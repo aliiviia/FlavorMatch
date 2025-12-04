@@ -1,47 +1,47 @@
 // src/pages/Home.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IconChefHat, IconSparkles, IconMusic } from "@tabler/icons-react";
-
-const featuredPairings = [
-  {
-    id: 1,
-    title: "Creamy Tuscan Chicken",
-    desc: "Rich, comforting flavors with smooth, romantic tunes.",
-    image: "https://images.pexels.com/photos/4106483/pexels-photo-4106483.jpeg",
-    badge: "Comfort",
-    time: "30 min",
-    tracks: "3 songs",
-  },
-  {
-    id: 2,
-    title: "Spicy Thai Basil Noodles",
-    desc: "Bold spice with energetic, modern beats.",
-    image: "https://images.pexels.com/photos/3026808/pexels-photo-3026808.jpeg",
-    badge: "Spice",
-    time: "25 min",
-    tracks: "3 songs",
-  },
-  {
-    id: 3,
-    title: "Classic Margherita Pizza",
-    desc: "Laid-back Italian vibes for a cozy night in.",
-    image: "https://images.pexels.com/photos/4109990/pexels-photo-4109990.jpeg",
-    badge: "Classic",
-    time: "45 min",
-    tracks: "3 songs",
-  },
-];
+import "../styles/Home.css";
 
 export default function Home() {
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
+  const [featuredRecipes, setFeaturedRecipes] = useState([]);
   const navigate = useNavigate();
 
-  const handleSubscribe = () => {
-    if (!email) return;
-    alert(`Thank you for subscribing with ${email}!`);
-    setEmail("");
-  };
+  // const handleSubscribe = () => {
+  //   if (!email) return;
+  //   alert(`Thank you for subscribing with ${email}!`);
+  //   setEmail("");
+  // };
+
+  // ---- Load real recipes for Featured Pairings ----
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:5001/api/recipes");
+        if (!res.ok) throw new Error("Failed to load recipes");
+
+        const data = await res.json();
+
+        // Take first 3 recipes (or fewer if not available)
+        const picked = (data || []).slice(0, 3).map((r) => ({
+          id: r.id,
+          title: r.title,
+          image: r.image,
+          readyInMinutes: r.readyInMinutes,
+        }));
+
+        setFeaturedRecipes(picked);
+      } catch (err) {
+        console.error("Error loading featured recipes:", err);
+        // optional: could fall back to nothing or some mock data
+        setFeaturedRecipes([]);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
 
   return (
     <>
@@ -156,7 +156,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* =============== FEATURED PAIRINGS (NEW STYLE) =============== */}
+      {/* =============== FEATURED PAIRINGS (REAL RECIPES) =============== */}
       <section id="featured-pairings" className="featured-pairings-new">
         <div className="fp-header">
           <h2>Featured Pairings</h2>
@@ -166,35 +166,47 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="fp-grid">
-          {featuredPairings.map((item) => (
-            <div
-              key={item.id}
-              className="fp-card"
-              onClick={() => navigate(`/recipe/${item.id}`)}
-            >
-              {/* Image */}
-              <div className="fp-img-wrap">
-                <img src={item.image} alt={item.title} className="fp-img" />
-                <div className="fp-badge">{item.badge}</div>
-              </div>
+        {featuredRecipes.length > 0 && (
+          <div className="fp-grid">
+            {featuredRecipes.map((recipe) => (
+              <div
+                key={recipe.id}
+                className="fp-card"
+                onClick={() => navigate(`/recipe/${recipe.id}`)}
+              >
+                {/* Image */}
+                <div className="fp-img-wrap">
+                  <img
+                    src={recipe.image}
+                    alt={recipe.title}
+                    className="fp-img"
+                  />
+                  <div className="fp-badge">Recipe</div>
+                </div>
 
-              {/* Content */}
-              <div className="fp-content">
-                <h3 className="fp-title">{item.title}</h3>
-                <p className="fp-desc">{item.desc}</p>
+                {/* Content */}
+                <div className="fp-content">
+                  <h3 className="fp-title">{recipe.title}</h3>
+                  <p className="fp-desc">
+                    Tap to view the full recipe and its music pairing.
+                  </p>
 
-                <div className="fp-meta">
-                  <span className="fp-meta-item">⏱ {item.time}</span>
-                  <span className="fp-meta-item">
-                    <IconMusic size={16} color="#b3b3b3" />
-                    {item.tracks}
-                  </span>
+                  <div className="fp-meta">
+                    {recipe.readyInMinutes && (
+                      <span className="fp-meta-item">
+                        ⏱ {recipe.readyInMinutes} min
+                      </span>
+                    )}
+                    <span className="fp-meta-item">
+                      <IconMusic size={16} color="#b3b3b3" />
+                      Playlist match
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="fp-explore-wrapper">
           <button

@@ -1,14 +1,17 @@
 // src/pages/CustomRecipePage.jsx
 import { useState, useEffect } from "react";
-import heroImg from "../create.png";
-import box from "../123.png";
-import fourImg from "../4.png"; 
+import heroImg from "../images/create.png";
+import box from "../images/123.png";
+import fourImg from "../images/4.png";
+import "../styles/Custom.css";
+
 const LOCAL_KEY = "customRecipes";
 
 export default function CustomRecipePage() {
   const [recipes, setRecipes] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
+  const [showSpotifyPrompt, setShowSpotifyPrompt] = useState(false);
 
   // form state
   const [name, setName] = useState("");
@@ -28,8 +31,36 @@ export default function CustomRecipePage() {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
   };
 
+  // check if user is logged into Spotify (same logic your app uses)
+  const isSpotifyConnected =
+    typeof window !== "undefined" &&
+    !!localStorage.getItem("spotify_token");
+
+  const handleCreateClick = () => {
+    if (!isSpotifyConnected) {
+      setShowSpotifyPrompt(true);
+      return;
+    }
+    setShowCreate(true);
+  };
+
+  const handleCollectionClick = () => {
+    if (!isSpotifyConnected) {
+      setShowSpotifyPrompt(true);
+      return;
+    }
+    setShowCollection(true);
+  };
+
   const handleCreateSubmit = (e) => {
     e.preventDefault();
+
+    // extra guard
+    if (!isSpotifyConnected) {
+      setShowCreate(false);
+      setShowSpotifyPrompt(true);
+      return;
+    }
 
     const newRecipe = {
       id: Date.now(),
@@ -45,6 +76,7 @@ export default function CustomRecipePage() {
     const next = [newRecipe, ...recipes];
     saveRecipes(next);
 
+    // reset form
     setName("");
     setCuisine("");
     setPrepTime("");
@@ -67,10 +99,7 @@ export default function CustomRecipePage() {
       <section
         className="cr-hero"
         style={{
-          backgroundImage: `
-          
-            url(${heroImg})
-          `,
+          backgroundImage: `url(${heroImg})`,
         }}
       >
         <div className="cr-hero-overlay" />
@@ -91,6 +120,12 @@ export default function CustomRecipePage() {
               A curated collection of your personal culinary creations, crafted
               with passion and precision.
             </p>
+
+            {!isSpotifyConnected && (
+              <p className="cr-hero-warning">
+                Connect your Spotify account to create and save custom recipes.
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -98,36 +133,32 @@ export default function CustomRecipePage() {
       {/* ========== MAIN ========== */}
       <section className="cr-main">
         <div className="cr-main-inner">
-
-          {/* Page Title */}
-
-          {/* FEATURED / COLLECTION labels */}
           <div className="cr-main-top-row">
             <p className="cr-section-label">FEATURED</p>
             <p className="cr-section-label cr-section-label-right">COLLECTION</p>
           </div>
 
-          {/* ========== GRID (LEFT = CREATE + PARAGRAPH | RIGHT = COLLECTION + STATS + QUOTE) ========== */}
           <div className="cr-grid">
-
             {/* LEFT COLUMN */}
             <div className="cr-left-column">
-
               {/* CREATE NEW RECIPE CARD */}
               <article
-                className="cr-feature-card"
-                onClick={() => setShowCreate(true)}
+                className={`cr-feature-card ${
+                  !isSpotifyConnected ? "cr-feature-card-disabled" : ""
+                }`}
+                onClick={handleCreateClick}
               >
                 <div
                   className="cr-feature-image"
                   style={{
-                    backgroundImage: `
-
-                      url(${fourImg})
-                    `,
+                    backgroundImage: `url(${fourImg})`,
                   }}
                 >
-
+                  {!isSpotifyConnected && (
+                    <div className="cr-locked-banner">
+                      <span>Connect Spotify to unlock</span>
+                    </div>
+                  )}
 
                   <div className="cr-feature-overlay" />
                   <div className="cr-feature-content">
@@ -146,7 +177,6 @@ export default function CustomRecipePage() {
                 </div>
               </article>
 
-              {/* PARAGRAPH UNDER CREATE NEW RECIPE */}
               <p className="cr-under-create">
                 Every great dish begins with inspiration. Whether it&apos;s a
                 family tradition passed down through generations or a bold new
@@ -159,8 +189,10 @@ export default function CustomRecipePage() {
             {/* RIGHT COLUMN */}
             <div className="cr-collection-column">
               <article
-                className="cr-collection-card"
-                onClick={() => setShowCollection(true)}
+                className={`cr-collection-card ${
+                  !isSpotifyConnected ? "cr-feature-card-disabled" : ""
+                }`}
+                onClick={handleCollectionClick}
               >
                 <div
                   className="cr-collection-image"
@@ -170,13 +202,13 @@ export default function CustomRecipePage() {
                   <div className="cr-collection-content">
                     <h3 className="cr-collection-title">My Collection</h3>
                     <p className="cr-collection-sub">
-                      {recipeCount} {recipeCount === 1 ? "recipe" : "recipes"} saved
+                      {recipeCount}{" "}
+                      {recipeCount === 1 ? "recipe" : "recipes"} saved
                     </p>
                   </div>
                 </div>
               </article>
 
-              {/* stats + quote */}
               <div className="cr-bottom-right">
                 <div className="cr-stats">
                   <div className="cr-stat-item">
@@ -195,7 +227,9 @@ export default function CustomRecipePage() {
                     &quot;Cooking is like music - both are expressions of
                     creativity that bring people together.&quot;
                   </p>
-                  <span className="cr-quote-source">— FLAVORMATCH PHILOSOPHY</span>
+                  <span className="cr-quote-source">
+                    — FLAVORMATCH PHILOSOPHY
+                  </span>
                 </blockquote>
               </div>
             </div>
@@ -359,7 +393,7 @@ export default function CustomRecipePage() {
                     className="cr-empty-button"
                     onClick={() => {
                       setShowCollection(false);
-                      setShowCreate(true);
+                      handleCreateClick();
                     }}
                   >
                     + Create Your First Recipe
@@ -387,6 +421,55 @@ export default function CustomRecipePage() {
                   ))}
                 </ul>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== SPOTIFY PROMPT MODAL ========== */}
+      {showSpotifyPrompt && (
+        <div
+          className="cr-modal-backdrop"
+          onClick={() => setShowSpotifyPrompt(false)}
+        >
+          <div
+            className="cr-modal cr-modal-small"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <header className="cr-modal-header">
+              <div>
+                <h2 className="cr-modal-title">Connect Spotify</h2>
+                <p className="cr-modal-subtitle">
+                  Sign in with Spotify to create recipes and sync them to your
+                  collections.
+                </p>
+              </div>
+              <button
+                className="cr-modal-close"
+                onClick={() => setShowSpotifyPrompt(false)}
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="cr-modal-actions">
+              <button
+                className="cr-btn-secondary"
+                onClick={() => setShowSpotifyPrompt(false)}
+              >
+                Not now
+              </button>
+              <button
+                className="cr-btn-primary"
+                onClick={() => {
+                  // 🔥 SAME BEHAVIOR AS NAVBAR BUTTON
+                  window.location.href = "http://127.0.0.1:5001/login";
+                }}
+              >
+                Connect Spotify
+              </button>
             </div>
           </div>
         </div>
