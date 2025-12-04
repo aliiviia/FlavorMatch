@@ -241,7 +241,7 @@ export default function RecipeDetails() {
                 <IconMusic size={18} /> Generate Spotify Playlist
               </button>
 
-              {playlistId && (
+              {playlistId && playlistId != "undefined" && (
                 <iframe
                   src={`https://open.spotify.com/embed/playlist/${playlistId}`}
                   width="100%"

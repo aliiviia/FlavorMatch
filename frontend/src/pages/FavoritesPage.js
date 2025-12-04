@@ -10,23 +10,11 @@ export default function FavoritesPage() {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState([]);
 
-  useEffect(() => {
-    const userId = localStorage.getItem("user_id");
+useEffect(() => {
+  const favs = JSON.parse(localStorage.getItem("favorites")) || [];
+  setFavorites(favs);
+}, []);
 
-    if (!userId) return; // no logged-in user
-
-    async function fetchFavorites() {
-      try {
-        const res = await fetch(`${API_URL}/favorites/${userId}`);
-        const data = await res.json();
-        setFavorites(data);
-      } catch (err) {
-        console.error("Failed to load favorites:", err);
-      }
-    }
-
-    fetchFavorites();
-  }, []);
 
   const recipeCount =
     favorites.length === 1 ? "1 recipe" : `${favorites.length} recipes`;
@@ -67,9 +55,9 @@ export default function FavoritesPage() {
 
           {favorites.map((item, index) => (
             <div
-              key={item.recipe_id}
+              key={item.id}
               className="favorites-row"
-              onClick={() => navigate(`/recipe/${item.recipe_id}`)}
+              onClick={() => navigate(`/recipe/${item.id}`)}
             >
               <div className="favorites-col-index">{index + 1}</div>
 
@@ -82,7 +70,7 @@ export default function FavoritesPage() {
                 <div className="favorites-row-text">
                   <p className="favorites-row-title">{item.title}</p>
                   <p className="favorites-row-sub">
-                    {item.cuisine || "Recipe"}
+                    {item.tags?.[0] || "Recipe"}
                   </p>
                 </div>
               </div>
@@ -92,7 +80,7 @@ export default function FavoritesPage() {
               </div>
 
               <div className="favorites-col-added">
-                {item.added_at?.slice(0, 10) || "Recently"}
+                {"Recently"}
               </div>
 
               <div className="favorites-col-time">

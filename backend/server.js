@@ -175,15 +175,28 @@ app.post("/api/createPlaylist", async (req, res) => {
         })
       }
     );
+    // debugging playlist creation
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Playlist creation failed:", errorText);
+      return res.status(response.status).json({ error: "Spotify error", details: errorText });
+    }
 
     const playlist = await response.json();
-    res.json(playlist);
+
+    if (!playlist.id) {
+      console.error("Spotify returned playlist WITHOUT ID:", playlist);
+      return res.status(500).json({ error: "Missing playlist ID from Spotify" });
+    }
+
+    return res.json(playlist);
 
   } catch (err) {
     console.error("Create playlist error:", err);
     res.status(500).json({ error: "Failed to create playlist" });
   }
 });
+
 
 /* ------------------------------------------------------
    SPOTIFY — ADD TRACKS
