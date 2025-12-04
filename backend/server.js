@@ -81,8 +81,6 @@ app.get("/callback", async (req, res) => {
     );
 
     const access_token = tokenResponse.data.access_token;
-
-    //Redirect to Vercel frontend
     res.redirect(`${process.env.FRONTEND_URL}/?access_token=${access_token}`);
 
   } catch (err) {
@@ -90,7 +88,6 @@ app.get("/callback", async (req, res) => {
     res.status(500).json({ error: "Failed to authenticate with Spotify" });
   }
 });
-
 
 /* ------------------------------------------------------
    SPOTIFY — FETCH USER PROFILE
@@ -118,7 +115,7 @@ app.get("/me", async (req, res) => {
 });
 
 /* ------------------------------------------------------
-   SPOTIFY — RECOMMEND SONGS (FIXED TO INCLUDE .uri)
+   SPOTIFY — RECOMMEND SONGS
 ------------------------------------------------------ */
 app.post("/api/recommendations", async (req, res) => {
   try {
@@ -137,14 +134,15 @@ app.post("/api/recommendations", async (req, res) => {
 
     const data = await searchRes.json();
 
-    // ⭐ CLEAN TRACKS AND EXPOSE SPOTIFY URI ⭐
-    const cleanedTracks = (data.tracks?.items || []).map((t) => ({
-      id: t.id,
-      name: t.name,
-      artists: t.artists,
-      preview_url: t.preview_url,
-      uri: t.uri,  // <-- REQUIRED FOR PLAYLIST ADDING
-    }));
+    const cleanedTracks = (data.tracks?.items || [])
+      .filter(t => t.uri)
+      .map((t) => ({
+        id: t.id,
+        name: t.name,
+        artists: t.artists,
+        preview_url: t.preview_url,
+        uri: t.uri,
+      }));
 
     res.json({ tracks: cleanedTracks });
 
@@ -216,112 +214,59 @@ app.post("/api/addTracks", async (req, res) => {
 });
 
 /* ------------------------------------------------------
-   RECIPE ENDPOINTS (FULL + MOCK FALLBACK)
+   RECIPES — MOCK FIRST, THEN SPOONACULAR
 ------------------------------------------------------ */
-
-// HELPER: Try to get cuisine from title if Spoonacular fails
-function getCuisineFromTitle(title) {
-  const t = title.toLowerCase();
-  if (t.includes("mexican")) return "mexican";
-  if (t.includes("italian")) return "italian";
-  if (t.includes("indian")) return "indian";
-  if (t.includes("japanese")) return "japanese";
-  if (t.includes("thai")) return "thai";
-  return null;
+function applyDefaults(r) {
+  return {
+    id: r.id,
+    title: r.title,
+    image: r.image,
+    summary: r.summary || "No summary available.",
+    extendedIngredients: r.extendedIngredients || [],
+    instructions: r.instructions || "No instructions available.",
+    cuisine: r.cuisine || "american",
+    readyInMinutes: r.readyInMinutes || 30,
+    servings: r.servings || 2
+  };
 }
 
-/* ---------- GET RANDOM OR SEARCH RECIPES ---------- */
 app.get("/api/recipes", async (req, res) => {
   const query = req.query.query?.toLowerCase();
-  const spoonacularKey = process.env.SPOONACULAR_KEY;
 
-  reenableSpoonacularIfTime();
-
-  // PAGE LOAD — NO SEARCH
   if (!query) {
-    if (!spoonacularEnabled) {
-      return res.json(MOCK_RECIPES);
-    }
-
-    try {
-      const apiRes = await fetch(
-        `https://api.spoonacular.com/recipes/random?number=10&apiKey=${spoonacularKey}`
-      );
-
-      if (!apiRes.ok) throw new Error("Random fetch failed");
-
-      const data = await apiRes.json();
-
-      return res.json(
-        data.recipes.map((r) => ({
-          id: r.id,
-          title: r.title,
-          image: r.image,
-          readyInMinutes: r.readyInMinutes,
-          servings: r.servings,
-        }))
-      );
-
-    } catch (err) {
-      disableSpoonacular();
-      return res.json(MOCK_RECIPES);
-    }
+    return res.json(MOCK_RECIPES.map(applyDefaults));
   }
 
-  // SEARCH MODE
-  if (!spoonacularEnabled) {
-    return res.json(
-      MOCK_RECIPES.filter((r) => r.title.toLowerCase().includes(query))
-    );
-  }
+  const filtered = MOCK_RECIPES.filter((r) =>
+    r.title.toLowerCase().includes(query)
+  );
 
-  try {
-    const apiRes = await fetch(
-      `https://api.spoonacular.com/recipes/complexSearch?query=${query}&number=10&apiKey=${spoonacularKey}`
-    );
-
-    if (!apiRes.ok) throw new Error("Search failed");
-
-    const data = await apiRes.json();
-
-    if (data.results?.length > 0) {
-      return res.json(data.results);
-    }
-
-    return res.json(
-      MOCK_RECIPES.filter((r) => r.title.toLowerCase().includes(query))
-    );
-
-  } catch (err) {
-    disableSpoonacular();
-    return res.json(
-      MOCK_RECIPES.filter((r) => r.title.toLowerCase().includes(query))
-    );
-  }
+  return res.json(filtered.map(applyDefaults));
 });
 
-/* ---------- GET SINGLE RECIPE ---------- */
 app.get("/api/recipeInfo", async (req, res) => {
   const { id } = req.query;
-  const spoonacularKey = process.env.SPOONACULAR_KEY;
 
-  reenableSpoonacularIfTime();
+  const mockRecipe = MOCK_RECIPES.find((r) => String(r.id) === String(id));
+
+  if (mockRecipe) {
+    return res.json(applyDefaults(mockRecipe));
+  }
 
   if (!spoonacularEnabled) {
-    const mock = MOCK_RECIPES.find((r) => String(r.id) === String(id));
-    return res.json(mock);
+    return res.json(null);
   }
 
   try {
     const apiRes = await fetch(
-      `https://api.spoonacular.com/recipes/${id}/information?includeNutrition=false&apiKey=${spoonacularKey}`
+      `https://api.spoonacular.com/recipes/${id}/information?includeNutrition=false&apiKey=${process.env.SPOONACULAR_KEY}`
     );
 
-    if (!apiRes.ok) throw new Error("Info failed");
+    if (!apiRes.ok) throw new Error("Recipe not found");
 
     const recipe = await apiRes.json();
 
-    return res.json({
+    return res.json(applyDefaults({
       id: recipe.id,
       title: recipe.title,
       image: recipe.image,
@@ -330,53 +275,27 @@ app.get("/api/recipeInfo", async (req, res) => {
       instructions: recipe.instructions,
       cuisine:
         recipe.cuisines?.[0]?.toLowerCase() ||
-        getCuisineFromTitle(recipe.title) ||
         "american",
-    });
+      readyInMinutes: recipe.readyInMinutes,
+      servings: recipe.servings
+    }));
 
   } catch (err) {
     disableSpoonacular();
-    return res.json(
-      MOCK_RECIPES.find((r) => String(r.id) === String(id))
-    );
+    return res.json(null);
   }
 });
 
-/* ---------- AUTOCOMPLETE ---------- */
-app.get("/api/autocomplete", async (req, res) => {
+app.get("/api/autocomplete", (req, res) => {
   const query = req.query.query?.toLowerCase();
-  const spoonacularKey = process.env.SPOONACULAR_KEY;
 
-  if (!query) return res.status(400).json({ error: "Missing query" });
+  if (!query) return res.json([]);
 
-  try {
-    if (!spoonacularEnabled) {
-      return res.json(
-        MOCK_RECIPES.filter((r) =>
-          r.title.toLowerCase().startsWith(query)
-        ).slice(0, 8)
-      );
-    }
+  const filtered = MOCK_RECIPES.filter((r) =>
+    r.title.toLowerCase().startsWith(query)
+  ).slice(0, 8);
 
-    const apiRes = await fetch(
-      `https://api.spoonacular.com/recipes/autocomplete?number=8&query=${encodeURIComponent(
-        query
-      )}&apiKey=${spoonacularKey}`
-    );
-
-    if (!apiRes.ok) throw new Error("Autocomplete failed");
-
-    const data = await apiRes.json();
-    return res.json(data);
-
-  } catch (err) {
-    disableSpoonacular();
-    return res.json(
-      MOCK_RECIPES.filter((r) =>
-        r.title.toLowerCase().startsWith(query)
-      ).slice(0, 8)
-    );
-  }
+  res.json(filtered.map(applyDefaults));
 });
 
 /* ------------------------------------------------------
@@ -384,5 +303,5 @@ app.get("/api/autocomplete", async (req, res) => {
 ------------------------------------------------------ */
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
+  console.log(`🚀 Server running with robust mock/spoonacular fallback on port ${PORT}`)
 );
