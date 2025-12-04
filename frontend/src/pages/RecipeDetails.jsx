@@ -1,13 +1,8 @@
-import {
-  IconHeadphones,
-  IconMusic,
-  IconUsers,
-} from "@tabler/icons-react";
-
-
 // src/pages/RecipeDetails.jsx
+import { IconHeadphones, IconMusic, IconUsers } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function RecipeDetails() {
@@ -16,26 +11,24 @@ export default function RecipeDetails() {
 
   const [recipeInfo, setRecipeInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [recommendedTracks, setRecommendedTracks] = useState([]);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [playlistId, setPlaylistId] = useState(null);
-
   const [isFavorite, setIsFavorite] = useState(false);
 
   const spotifyToken = localStorage.getItem("spotify_token");
 
-  /* ---------------- FAVORITES: LOAD ---------------- */
+  /* --- FAVORITES - LOAD --- */
   useEffect(() => {
     const favs = JSON.parse(localStorage.getItem("favorites")) || [];
     const exists = favs.some((f) => String(f.id) === String(id));
     setIsFavorite(exists);
   }, [id]);
 
-  /* ---------------- FAVORITES: TOGGLE ---------------- */
+  /* --- FAVORITES - TOGGLE --- */
   const toggleFavorite = () => {
     if (!recipeInfo) return;
-
+    
     let favs = JSON.parse(localStorage.getItem("favorites")) || [];
     const exists = favs.some((f) => String(f.id) === String(id));
 
@@ -64,18 +57,15 @@ export default function RecipeDetails() {
     localStorage.setItem("favorites", JSON.stringify(favs));
   };
 
-  /* ---------------- FETCH RECIPE + MUSIC ---------------- */
+  /* --- FETCH RECIPE + MUSIC --- */
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        const recipeRes = await fetch(
-          `${API_URL}/api/recipeInfo?id=${id}`
-        );
+        const recipeRes = await fetch(`${API_URL}/api/recipeInfo?id=${id}`);
         const recipe = await recipeRes.json();
         setRecipeInfo(recipe);
 
-        // use cuisine (or fallback) for music pairing
-        const cuisine = recipe.cuisine || recipe.cuisines?.[0] || "chill";
+        const cuisine = recipe.cuisine || "chill";
 
         const recRes = await fetch(`${API_URL}/api/recommendations`, {
           method: "POST",
@@ -87,15 +77,15 @@ export default function RecipeDetails() {
         });
 
         const recData = await recRes.json();
-        const tracks = recData.tracks || [];
-        setRecommendedTracks(tracks);
+        setRecommendedTracks(recData.tracks);
 
-        if (tracks.length > 0) {
-          const random = tracks[Math.floor(Math.random() * tracks.length)];
+        if (recData.tracks.length > 0) {
+          const random = recData.tracks[Math.floor(Math.random() * recData.tracks.length)];
           setSelectedTrack(random);
         }
+
       } catch (err) {
-        console.error("Error fetching recipe details:", err);
+        console.error("Error loading recipe:", err);
       } finally {
         setLoading(false);
       }
@@ -104,16 +94,10 @@ export default function RecipeDetails() {
     fetchDetails();
   }, [id, spotifyToken]);
 
-  /* ---------------- CREATE PLAYLIST ---------------- */
+  /* --- CREATE SPOTIFY PLAYLIST --- */
   const handleMakePlaylist = async () => {
-    if (!spotifyToken) {
-      alert("Please log in with Spotify first!");
-      return;
-    }
-    if (!recommendedTracks.length) {
-      alert("No recommended tracks to add.");
-      return;
-    }
+    if (!spotifyToken) return alert("Please log in with Spotify first!");
+    if (!recommendedTracks.length) return alert("No recommended tracks!");
 
     try {
       const userRes = await fetch(`${API_URL}/me`, {
@@ -121,20 +105,17 @@ export default function RecipeDetails() {
       });
       const user = await userRes.json();
 
-      const playlistRes = await fetch(
-        `${API_URL}/api/createPlaylist`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${spotifyToken}`,
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            recipeTitle: recipeInfo.title,
-          }),
-        }
-      );
+      const playlistRes = await fetch(`${API_URL}/api/createPlaylist`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${spotifyToken}`,
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          recipeTitle: recipeInfo.title,
+        }),
+      });
 
       const playlist = await playlistRes.json();
       setPlaylistId(playlist.id);
@@ -147,56 +128,33 @@ export default function RecipeDetails() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${spotifyToken}`,
         },
-        body: JSON.stringify({
-          playlistId: playlist.id,
-          uris,
-        }),
+        body: JSON.stringify({ playlistId: playlist.id, uris }),
       });
 
       alert("Playlist created! Scroll down to listen.");
     } catch (err) {
-      console.error("Error creating playlist:", err);
-      alert("Failed to create playlist.");
+      console.error("Playlist error:", err);
+      alert("Could not create playlist.");
     }
   };
 
-  /* ---------------- LOADING STATES ---------------- */
-  if (loading) {
-    return (
-      <main className="recipe-page">
-        <div className="recipe-page-inner">
-          <p className="recipe-loading">Loading recipe...</p>
-        </div>
-      </main>
-    );
-  }
+  /* --- LOADING STATES --- */
+  if (loading) return <p>Loading recipe...</p>;
+  if (!recipeInfo) return <p>Recipe not found.</p>;
 
-  if (!recipeInfo) {
-    return (
-      <main className="recipe-page">
-        <div className="recipe-page-inner">
-          <p className="recipe-loading">Recipe not found.</p>
-        </div>
-      </main>
-    );
-  }
-
-  /* ---------------- MAIN UI ---------------- */
+  /* --- MAIN UI --- */
   return (
     <main className="recipe-page">
       <div className="recipe-page-inner">
-        {/* Back link */}
-        <button className="back-btn" onClick={() => navigate(-1)} type="button">
-          ← Back to recipes
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          ← Back
         </button>
 
-        {/* HEADER AREA – matches screenshot */}
         <header className="recipe-header">
           <h1 className="recipe-title-main">{recipeInfo.title}</h1>
 
           <div className="recipe-header-meta-row">
             <button
-              type="button"
               className={`details-fav-btn ${isFavorite ? "is-favorite" : ""}`}
               onClick={toggleFavorite}
             >
@@ -204,16 +162,10 @@ export default function RecipeDetails() {
             </button>
 
             {recipeInfo.readyInMinutes && (
-              <span className="recipe-meta-pill">
-                ⏱ {recipeInfo.readyInMinutes} minutes
-              </span>
+              <span className="recipe-meta-pill">⏱ {recipeInfo.readyInMinutes} min</span>
             )}
             {recipeInfo.servings && (
-              <span className="recipe-meta-pill">
-                <IconUsers size={16} stroke={1.5} />
-                {recipeInfo.servings} servings
-              </span>
-
+              <span className="recipe-meta-pill"><IconUsers size={16} /> {recipeInfo.servings}</span>
             )}
           </div>
 
@@ -225,122 +177,40 @@ export default function RecipeDetails() {
           )}
         </header>
 
-        {/* 2-COLUMN LAYOUT */}
         <section className="recipe-layout">
-          {/* LEFT COLUMN: image + cards */}
-          <div className="recipe-main-column">
-            {/* Big image card */}
-            <article className="recipe-card recipe-image-card">
-              <img
-                src={recipeInfo.image}
-                alt={recipeInfo.title}
-                className="recipe-main-img"
-              />
-            </article>
-
-            {/* Ingredients */}
-            <article className="recipe-card">
-              <h2 className="recipe-section-heading">Ingredients</h2>
-              <ul className="ingredients-list">
-                {recipeInfo.extendedIngredients?.map((i, index) => {
-                  const text =
-                    typeof i === "string"
-                      ? i
-                      : i.original || i.name || JSON.stringify(i);
-                  return (
-                    <li key={index} className="ingredient-item">
-                      <span className="ingredient-dot" />
-                      <span>{text}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </article>
-
-            {/* Instructions */}
-            <article className="recipe-card">
-              <h2 className="recipe-section-heading">Instructions</h2>
-              {recipeInfo.instructions ? (
-                <ol className="instructions-list">
-                  {recipeInfo.instructions
-                    .split(/\. +/)
-                    .map((s) => s.trim())
-                    .filter(Boolean)
-                    .map((step, idx) => (
-                      <li key={idx} className="instruction-item">
-                        <span className="instruction-number">{idx + 1}</span>
-                        <p className="instruction-text">{step}</p>
-                      </li>
-                    ))}
-                </ol>
-              ) : (
-                <p className="instruction-text">No instructions provided.</p>
-              )}
-            </article>
-          </div>
-
-          {/* RIGHT COLUMN: Music Pairing card */}
           <aside className="recipe-side-column">
             <article className="recipe-card music-card">
-              <div className="music-card-header">
-                <h2 className="recipe-section-heading music-heading">
-                  <IconHeadphones size={20} stroke={1.8} />
-                  Music Pairing
-                </h2>
-                <p className="music-subtitle">
-                  A song selected to match this recipe’s vibe.
-                </p>
-              </div>
+              <h2 className="recipe-section-heading">
+                <IconHeadphones size={20} /> Music Pairing
+              </h2>
 
               {selectedTrack ? (
-                <div className="music-recommendations">
-                  <div className="music-track-card small">
-                    <div className="music-track-info">
-                      <p className="music-track-title">{selectedTrack.name}</p>
-                      <p className="music-track-artist">
-                        {selectedTrack.artists.map((a) => a.name).join(", ")}
-                      </p>
-                    </div>
+                <>
+                  <p>{selectedTrack.name}</p>
+                  <p>{selectedTrack.artists.map((a) => a.name).join(", ")}</p>
 
-                    <iframe
-                      src={`https://open.spotify.com/embed/track/${selectedTrack.id}`}
-                      width="100%"
-                      height="152"
-                      style={{ borderRadius: "12px", marginTop: "10px" }}
-                      frameBorder="0"
-                      allow="encrypted-media"
-                      title="spotify-track-player"
-                    ></iframe>
-                  </div>
-                </div>
+                  <iframe
+                    src={`https://open.spotify.com/embed/track/${selectedTrack.id}`}
+                    width="100%"
+                    height="200"
+                    style={{ borderRadius: "12px" }}
+                  ></iframe>
+                </>
               ) : (
-                <p className="music-subtitle">No recommendations found.</p>
+                <p>No tracks found.</p>
               )}
 
-              <div className="music-actions">
-                <button
-                  type="button"
-                  className="music-primary-btn"
-                  onClick={handleMakePlaylist}
-                >
-                 <IconMusic size={18} stroke={1.8} />
-                    Generate Spotify Playlist
-
-                </button>
-              </div>
+              <button className="music-primary-btn" onClick={handleMakePlaylist}>
+                <IconMusic size={18} /> Generate Spotify Playlist
+              </button>
 
               {playlistId && (
-                <div className="playlist-embed-wrapper" style={{ marginTop: 18 }}>
-                  <iframe
-                    src={`https://open.spotify.com/embed/playlist/${playlistId}`}
-                    width="100%"
-                    height="400"
-                    style={{ borderRadius: "12px" }}
-                    frameBorder="0"
-                    allow="encrypted-media"
-                    title="playlist-player"
-                  />
-                </div>
+                <iframe
+                  src={`https://open.spotify.com/embed/playlist/${playlistId}`}
+                  width="100%"
+                  height="400"
+                  style={{ borderRadius: "12px", marginTop: 12 }}
+                ></iframe>
               )}
             </article>
           </aside>
