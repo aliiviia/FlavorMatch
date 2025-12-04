@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../styles/Recipes.css";
 
 export default function ExploreCustomRecipesPage() {
   const [searchQuery, setSearchQuery] = useState("");

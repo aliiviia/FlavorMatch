@@ -1,5 +1,10 @@
 import { NavLink } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import {
+  IconChefHat,
+  IconToolsKitchen2
+} from "@tabler/icons-react";
+
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function Navbar({ user }) {
@@ -25,26 +30,49 @@ export default function Navbar({ user }) {
     <header className="nav">
       <div className="nav-inner">
         <NavLink to="/" className="nav-logo">
-          <span className="nav-logo-icon">🍴</span>
+          <div className="nav-logo-icon flex items-center gap-1">
+            <IconToolsKitchen2 color="#1db954" stroke={2} size={26} />
+            <IconChefHat color="#1db954" stroke={2} size={26} />
+          </div>
+
           <span className="nav-logo-text">FlavorMatch</span>
         </NavLink>
 
         <nav className="nav-links">
-
           {/* Main navigation links */}
-          <NavLink to="/" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
             Home
           </NavLink>
 
-          <NavLink to="/recipes" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+          <NavLink
+            to="/recipes"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
             Explore Recipes
           </NavLink>
 
-          <NavLink to="/favorites" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+          <NavLink
+            to="/favorites"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
             Favorites
           </NavLink>
 
-          <NavLink to="/custom" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
+          <NavLink
+            to="/custom"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
             Custom Recipe
           </NavLink>
 
@@ -60,7 +88,7 @@ export default function Navbar({ user }) {
                 alt="Spotify Profile"
                 className="spotify-profile-img"
                 onError={(e) => {
-                  e.currentTarget.onerror = null; 
+                  e.currentTarget.onerror = null;
                   e.currentTarget.src = "/spotify-logo.png";
                 }}
               />
