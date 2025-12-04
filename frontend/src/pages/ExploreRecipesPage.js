@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MOCK_RECIPES } from "../mockRecipes";
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function ExploreRecipesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,14 +12,13 @@ export default function ExploreRecipesPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-
   const navigate = useNavigate();
 
   // ----------------- LOAD DEFAULT RECIPES -----------------
   useEffect(() => {
     const loadInitialRecipes = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:5001/api/recipes");
+        const res = await fetch(`${API_URL}/api/recipes`);
         if (!res.ok) throw new Error("Backend fetch failed");
 
         const data = await res.json();
@@ -53,7 +53,7 @@ export default function ExploreRecipesPage() {
       setHasSearched(true);
 
       const res = await fetch(
-        `http://127.0.0.1:5001/api/recipes?query=${encodeURIComponent(query)}`
+        `${API_URL}/api/recipes?query=${encodeURIComponent(query)}`
       );
       if (!res.ok) throw new Error("Failed to fetch recipes");
 
@@ -94,7 +94,7 @@ export default function ExploreRecipesPage() {
 
     try {
       const res = await fetch(
-        `http://127.0.0.1:5001/api/autocomplete?query=${encodeURIComponent(
+        `${API_URL}/api/autocomplete?query=${encodeURIComponent(
           value
         )}`
       );

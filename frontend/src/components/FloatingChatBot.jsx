@@ -4,6 +4,8 @@
     - To appear on each page on the bottom right */
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 
 export default function FloatingChatBot() {
   const [open, setOpen] = useState(false);
@@ -47,7 +49,7 @@ export default function FloatingChatBot() {
     setInput("");
     setLoading(true);
 
-    const res = await fetch("http://localhost:5001/api/chat-ingredients", {
+    const res = await fetch(`${API_URL}/api/chat-ingredients`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: userMessage.text }),
