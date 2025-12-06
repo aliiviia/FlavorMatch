@@ -14,30 +14,30 @@ export default function RecipeDetails() {
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [playlistId, setPlaylistId] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
-
-  // ⭐ NEW: playlist loading state
-  const [playlistLoading, setPlaylistLoading] = useState(false);
+  const [playlistLoading, setPlaylistLoading] = useState(false); // ⭐ NEW
 
   const spotifyToken = localStorage.getItem("spotify_token");
+
   console.log("RecipeDetails component rendered");
 
+  // ⭐ UPDATED — THIS DOES NOT TOUCH REACT STATE
   async function waitForEmbedReady(id) {
-    let ready = false;
-
-    while (!ready) {
+    for (let i = 0; i < 20; i++) {
       const res = await fetch(
         `https://open.spotify.com/oembed?url=https://open.spotify.com/playlist/${id}`
       );
       const data = await res.json();
 
       if (data.thumbnail_url) {
-        ready = true;
-      } else {
-        await new Promise((r) => setTimeout(r, 500));
+        console.log("Spotify embed metadata ready!");
+        return true;
       }
+
+      await new Promise((r) => setTimeout(r, 600));
     }
 
-    setPlaylistId(id);
+    console.warn("Spotify embed metadata did NOT become ready.");
+    return false;
   }
 
   /* --- FAVORITES - LOAD --- */
@@ -133,8 +133,8 @@ export default function RecipeDetails() {
     console.log("=== START handleMakePlaylist ===");
     console.log("recommendedTracks:", recommendedTracks);
 
-    // ⭐ NEW: turn loading ON
-    setPlaylistLoading(true);
+    setPlaylistLoading(true); // ⭐ turn on loading
+    setPlaylistId(null);      // ⭐ clear old playlist embed
 
     if (!spotifyToken) {
       setPlaylistLoading(false);
@@ -146,14 +146,13 @@ export default function RecipeDetails() {
     }
 
     try {
-      console.log("Fetching user profile...");
+      console.log("Fetching Spotify user...");
 
       const userRes = await fetch(`${API_URL}/me`, {
         headers: { Authorization: `Bearer ${spotifyToken}` },
       });
-
       const user = await userRes.json();
-      console.log("Spotify user object:", user);
+      console.log("User:", user);
 
       console.log("Creating playlist...");
       const playlistRes = await fetch(`${API_URL}/api/createPlaylist`, {
@@ -169,18 +168,18 @@ export default function RecipeDetails() {
       });
 
       const playlist = await playlistRes.json();
-      console.log("Playlist response from backend:", playlist);
+      console.log("Playlist response:", playlist);
 
       if (!playlist || !playlist.id) {
         setPlaylistLoading(false);
-        return alert("Playlist creation failed — no playlist ID returned.");
+        return alert("Error: Missing playlist ID!");
       }
 
-      console.log("Playlist ID returned:", playlist.id);
+      const playlistID = playlist.id;
+      console.log("Playlist ID:", playlistID);
 
-      // Add tracks
+      console.log("Adding tracks...");
       const uris = recommendedTracks.map((t) => t.uri).filter(Boolean);
-      console.log("Track URIs to add:", uris);
 
       const addTracksRes = await fetch(`${API_URL}/api/addTracks`, {
         method: "POST",
@@ -188,25 +187,25 @@ export default function RecipeDetails() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${spotifyToken}`,
         },
-        body: JSON.stringify({ playlistId: playlist.id, uris }),
+        body: JSON.stringify({ playlistId: playlistID, uris }),
       });
+      console.log("Add tracks result:", await addTracksRes.json());
 
-      console.log("AddTracks response:", await addTracksRes.json());
+      console.log("Waiting for Spotify embed metadata...");
+      const ready = await waitForEmbedReady(playlistID);
 
-      // Clear old iframe
-      setPlaylistId(null);
+      if (!ready) {
+        console.warn("Embed not ready; showing anyway.");
+      }
 
-      // Wait for embed metadata
-      await waitForEmbedReady(playlist.id);
-
-      // ⭐ NEW: turn loading OFF here since embed is ready
-      setPlaylistLoading(false);
+      setPlaylistId(playlistID);  // ⭐ show embed
+      setPlaylistLoading(false);   // ⭐ stop loading
 
       console.log("=== END handleMakePlaylist ===");
     } catch (err) {
       console.error("Playlist creation ERROR:", err);
       alert("Could not create playlist.");
-      setPlaylistLoading(false); // turn loading off on error
+      setPlaylistLoading(false);
     }
   };
 
@@ -278,7 +277,6 @@ export default function RecipeDetails() {
                 <IconHeadphones size={20} /> Music Pairing
               </h2>
 
-              {/* TRACK PREVIEW */}
               {selectedTrack ? (
                 <>
                   <p>{selectedTrack.name}</p>
@@ -300,7 +298,7 @@ export default function RecipeDetails() {
                 <IconMusic size={18} /> Generate Spotify Playlist
               </button>
 
-              {/* ⭐ NEW: LOADING STATE */}
+              {/* ⭐ LOADING UI */}
               {playlistLoading && (
                 <div className="playlist-loading">
                   <p>Generating your playlist…</p>
@@ -308,7 +306,7 @@ export default function RecipeDetails() {
                 </div>
               )}
 
-              {/* PLAYLIST EMBED */}
+              {/* EMBED */}
               {!playlistLoading && playlistId && (
                 <iframe
                   title={`playlist-${playlistId}`}
