@@ -16,6 +16,28 @@ export default function RecipeDetails() {
   const [isFavorite, setIsFavorite] = useState(false);
 
   const spotifyToken = localStorage.getItem("spotify_token");
+console.log("RecipeDetails component rendered");
+
+  async function waitForEmbedReady(id) {
+  let ready = false;
+
+  while (!ready) {
+    const res = await fetch(
+      `https://open.spotify.com/oembed?url=https://open.spotify.com/playlist/${id}`
+    );
+    const data = await res.json();
+
+    // Metadata ready when thumbnail_url exists
+    if (data.thumbnail_url) {
+      ready = true;
+    } else {
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+
+  setPlaylistId(id);
+}
+
 
   /* --- FAVORITES - LOAD --- */
   useEffect(() => {
@@ -108,50 +130,117 @@ export default function RecipeDetails() {
   }, [id, spotifyToken]);
 
   /* --- CREATE PLAYLIST --- */
-  const handleMakePlaylist = async () => {
-    if (!spotifyToken) return alert("Please log in with Spotify first!");
-    if (!recommendedTracks.length) return alert("No recommended tracks found.");
+const handleMakePlaylist = async () => {
+  console.log("=== START handleMakePlaylist ===");
+  console.log("spotifyToken:", spotifyToken);
+  console.log("recommendedTracks:", recommendedTracks);
 
-    try {
-      const userRes = await fetch(`${API_URL}/me`, {
-        headers: { Authorization: `Bearer ${spotifyToken}` },
-      });
+  if (!spotifyToken) {
+    console.warn("No Spotify token found.");
+    return alert("Please log in with Spotify first!");
+  }
+  if (!recommendedTracks.length) {
+    console.warn("No recommended tracks in state.");
+    return alert("No recommended tracks found.");
+  }
 
-      const user = await userRes.json();
+  try {
+    console.log("Fetching user profile...");
 
-      const playlistRes = await fetch(`${API_URL}/api/createPlaylist`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${spotifyToken}`,
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          recipeTitle: recipeInfo.title,
-        }),
-      });
+    const userRes = await fetch(`${API_URL}/me`, {
+      headers: { Authorization: `Bearer ${spotifyToken}` },
+    });
 
-      const playlist = await playlistRes.json();
-      setPlaylistId(playlist.id);
+    const user = await userRes.json();
+    console.log("Spotify user object:", user);
 
-      const uris = recommendedTracks.map((t) => t.uri).filter(Boolean);
+    console.log("Creating playlist...");
+    const playlistRes = await fetch(`${API_URL}/api/createPlaylist`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${spotifyToken}`,
+      },
+      body: JSON.stringify({
+        userId: user.id,
+        recipeTitle: recipeInfo.title,
+      }),
+    });
 
-      await fetch(`${API_URL}/api/addTracks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${spotifyToken}`,
-        },
-        body: JSON.stringify({ playlistId: playlist.id, uris }),
-      });
-
-      alert("Playlist created! Scroll down to listen.");
-
-    } catch (err) {
-      console.error("Playlist error:", err);
-      alert("Could not create playlist.");
+    const playlist = await playlistRes.json();
+    console.log("Playlist response from backend:", playlist);
+    
+    // Validate playlist object
+    if (!playlist || !playlist.id) {
+      console.error("ERROR: Missing playlist ID!", playlist);
+      alert("Playlist creation failed — no playlist ID returned.");
+      return;
     }
-  };
+
+    console.log("Playlist ID returned:", playlist.id);
+
+    // Add tracks
+    const uris = recommendedTracks.map((t) => t.uri).filter(Boolean);
+    console.log("Track URIs to add:", uris);
+
+    console.log("Calling /api/addTracks...");
+    const addTracksRes = await fetch(`${API_URL}/api/addTracks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${spotifyToken}`,
+      },
+      body: JSON.stringify({ playlistId: playlist.id, uris }),
+    });
+
+    const addTracksData = await addTracksRes.json();
+    console.log("AddTracks response:", addTracksData);
+
+    // Debug Spotify embed polling
+    console.log("Waiting for Spotify embed to become ready...");
+
+    // Optional: clear iframe
+    setPlaylistId(null);
+    await waitForEmbedReady(playlist.id);
+    // Test embed readiness
+    const testEmbedURL = `https://open.spotify.com/embed/playlist/${playlist.id}`;
+    console.log("Embed URL:", testEmbedURL);
+
+    // Try requesting oEmbed metadata
+    console.log("Polling oEmbed metadata...");
+    let embedReady = false;
+
+    for (let i = 0; i < 10; i++) {
+      const embedRes = await fetch(
+        `https://open.spotify.com/oembed?url=https://open.spotify.com/playlist/${playlist.id}`
+      );
+
+      const embedData = await embedRes.json();
+      console.log(`oEmbed poll attempt #${i}:`, embedData);
+
+      if (embedData.thumbnail_url) {
+        console.log("oEmbed metadata READY");
+        embedReady = true;
+        break;
+      }
+      
+      await new Promise((r) => setTimeout(r, 700));
+    }
+
+    if (!embedReady) {
+      console.warn("oEmbed metadata NEVER became ready — embedding anyway.");
+    }
+
+    console.log("Setting playlistId in React state:", playlist.id);
+    setPlaylistId(playlist.id);
+
+    console.log("=== END handleMakePlaylist ===");
+
+  } catch (err) {
+    console.error("Playlist creation ERROR:", err);
+    alert("Could not create playlist.");
+  }
+};
 
   /* --- LOADING --- */
   if (loading) return <p>Loading recipe...</p>;
@@ -241,7 +330,7 @@ export default function RecipeDetails() {
                 <IconMusic size={18} /> Generate Spotify Playlist
               </button>
 
-              {playlistId && playlistId != "undefined" && (
+              {playlistId && playlistId != undefined && (
                 <iframe
                   src={`https://open.spotify.com/embed/playlist/${playlistId}`}
                   width="100%"
