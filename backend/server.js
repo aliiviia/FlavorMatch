@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 import axios from "axios";
+// import { pool } from "./db/index.js";
 
 import cuisineGenreMap from "./cuisineGenreMap.js";
 import { MOCK_RECIPES } from "./mockRecipes.js";
@@ -310,6 +311,58 @@ app.get("/api/autocomplete", (req, res) => {
 
   res.json(filtered.map(applyDefaults));
 });
+
+
+// app.post("/api/customRecipe", async (req, res) => {
+//   try {
+//     const {
+//       title,
+//       description,
+//       instructions,
+//       ingredients,
+//       image,
+//       cuisine
+//     } = req.body;
+
+//     const result = await pool.query(
+//       `INSERT INTO recipes 
+//         (recipe_name, description, instructions, ingredients, image, source, cuisine)
+//        VALUES ($1, $2, $3, $4, $5, 'custom', $6)
+//        RETURNING *`,
+//       [
+//         title,
+//         description,
+//         instructions,
+//         JSON.stringify(ingredients),
+//         image,
+//         cuisine
+//       ]
+//     );
+
+//     res.json({ success: true, recipe: result.rows[0] });
+//   } catch (err) {
+//     console.error("❌ Error saving recipe:", err);
+//     res.status(500).json({ error: "Failed to save recipe" });
+//   }
+// });
+// console.log("Custom Recipe route loaded");
+
+/* ------------------------------------------------------
+   CUSTOM RECIPES — LOAD FROM DATABASE
+------------------------------------------------------ */
+// app.get("/api/customRecipes", async (req, res) => {
+//   try {
+//     const result = await pool.query(
+//       "SELECT * FROM recipes WHERE source = 'custom' ORDER BY recipe_id DESC"
+//     );
+
+//     return res.json(result.rows);
+//   } catch (err) {
+//     console.error("❌ Error loading recipes:", err);
+//     return res.status(500).json({ error: "Failed to load recipes" });
+//   }
+// });
+
 
 /* ------------------------------------------------------
    START SERVER

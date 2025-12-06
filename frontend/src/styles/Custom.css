@@ -670,3 +670,78 @@
     max-width: 94%;
   }
 }
+
+.cr-delete-button {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: green;
+  margin-left: 10px;
+}
+
+.cr-delete-button:hover {
+  color: #d11a1a;
+}
+
+.cr-collection-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* EMPTY STATE CONTAINER */
+.cr-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+  text-align: center;
+
+  margin-top: 20px;
+}
+
+/* ICON */
+.cr-empty-icon {
+  font-size: 50px;
+  margin-bottom: 15px;
+  opacity: 0.75;
+}
+
+/* TITLE */
+.cr-empty-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* DESCRIPTION TEXT */
+.cr-empty-text {
+  font-size: 16px;
+  max-width: 320px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* BUTTON */
+.cr-empty-button {
+  background: #32cd32; /* light green accent */
+  color: white;
+  padding: 10px 22px;
+  font-size: 16px;
+  font-weight: 600;
+
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* BUTTON HOVER EFFECT */
+.cr-empty-button:hover {
+  background: #28a428;
+  transform: translateY(-2px);
+}

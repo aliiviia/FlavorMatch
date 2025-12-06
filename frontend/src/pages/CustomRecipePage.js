@@ -12,6 +12,8 @@ export default function CustomRecipePage() {
   const [showCreate, setShowCreate] = useState(false);
   const [showCollection, setShowCollection] = useState(false);
   const [showSpotifyPrompt, setShowSpotifyPrompt] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [showRecipe, setShowRecipe] = useState(false);
 
   // form state
   const [name, setName] = useState("");
@@ -31,10 +33,23 @@ export default function CustomRecipePage() {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
   };
 
+  const deleteRecipe = (id) => {
+    const next = recipes.filter((r) => r.id !== id);
+    saveRecipes(next); // updates state + localStorage
+  };
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/customRecipes`)
+      .then(res => res.json())
+      .then(data => setRecipes(data))
+      .catch(err => console.error("Failed to load recipes:", err));
+  }, []);  
+
   // check if user is logged into Spotify (same logic your app uses)
   const isSpotifyConnected =
     typeof window !== "undefined" &&
     !!localStorage.getItem("spotify_token");
+  // const isSpotifyConnected = true;
 
   const handleCreateClick = () => {
     if (!isSpotifyConnected) {
@@ -61,6 +76,7 @@ export default function CustomRecipePage() {
       setShowSpotifyPrompt(true);
       return;
     }
+    
 
     const newRecipe = {
       id: Date.now(),
@@ -87,6 +103,56 @@ export default function CustomRecipePage() {
     setShowCreate(false);
     setShowCollection(true);
   };
+
+  // const handleCreateSubmit = async (e) => {
+  //   e.preventDefault();
+  
+  //   const formattedIngredients = ingredients
+  //     .split("\n")
+  //     .map(i => i.trim())
+  //     .filter(Boolean);
+  
+  //   const payload = {
+  //     title: name,
+  //     description: `${cuisine} • ${prepTime}`, // optional
+  //     cuisine,
+  //     instructions,
+  //     ingredients: formattedIngredients,
+  //     image: imageUrl,
+  //   };
+  
+  //   try {
+  //     const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/customRecipe`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(payload),
+  //     });
+  
+  //     const data = await res.json();
+  
+  //     if (data.success) {
+  //       // Add new recipe to list
+  //       setRecipes([data.recipe, ...recipes]);
+  
+  //       // Reset form
+  //       setName("");
+  //       setCuisine("");
+  //       setPrepTime("");
+  //       setIngredients("");
+  //       setInstructions("");
+  //       setImageUrl("");
+  
+  //       setShowCreate(false);
+  //       setShowCollection(true);
+  //     } else {
+  //       alert("Failed to save recipe.");
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Server error.");
+  //   }
+  // };
+  
 
   const recipeCount = recipes.length;
   const categoryCount = new Set(
@@ -402,7 +468,14 @@ export default function CustomRecipePage() {
               ) : (
                 <ul className="cr-collection-list">
                   {recipes.map((r) => (
-                    <li key={r.id} className="cr-collection-item">
+                    <li 
+                      key={r.id} 
+                      className="cr-collection-item"
+                      onClick={() => {
+                        setSelectedRecipe(r);
+                        setShowRecipe(true);
+                      }}
+                    >
                       <div className="cr-collection-thumb">
                         {r.imageUrl ? (
                           <img src={r.imageUrl} alt={r.name} />
@@ -417,6 +490,15 @@ export default function CustomRecipePage() {
                           {r.prepTime || "Prep time n/a"}
                         </p>
                       </div>
+                      <button
+                        className="cr-delete-button"
+                        onClick={(e) => {
+                          e.stopPropagation(); // prevents opening the modal
+                          deleteRecipe(r.id);
+                        }}
+                      >
+                        X
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -474,6 +556,57 @@ export default function CustomRecipePage() {
           </div>
         </div>
       )}
+
+        {showRecipe && selectedRecipe && (
+          <div 
+            className="cr-modal-backdrop"
+            onClick={() => setShowRecipe(false)}
+          >
+            <div 
+              className="cr-modal"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+              <header className="cr-modal-header">
+                <h2 className="cr-modal-title">{selectedRecipe.name}</h2>
+                <button 
+                  className="cr-modal-close"
+                  onClick={() => setShowRecipe(false)}
+                >
+                  ×
+                </button>
+              </header>
+
+              <div className="cr-modal-body">
+                {selectedRecipe.imageUrl && (
+                  <img 
+                    src={selectedRecipe.imageUrl}
+                    alt={selectedRecipe.name}
+                    className="cr-recipe-image"
+                    style={{ width: "100%", borderRadius: "10px", marginBottom: "15px" }}
+                  />
+                )}
+
+                <p><strong>Cuisine:</strong> {selectedRecipe.cuisine || "N/A"}</p>
+                <p><strong>Prep Time:</strong> {selectedRecipe.prepTime || "N/A"}</p>
+
+                <hr />
+
+                <h3>Ingredients</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>
+                  {selectedRecipe.ingredients}
+                </p>
+
+                <h3>Instructions</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>
+                  {selectedRecipe.instructions}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
     </main>
   );
 }

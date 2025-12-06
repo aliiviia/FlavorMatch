@@ -16,6 +16,7 @@ export default function CreateRecipePage() {
 
   // 🟢 Check Spotify auth
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("spotify_token");
