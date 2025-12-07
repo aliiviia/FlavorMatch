@@ -8,12 +8,14 @@ import axios from "axios";
 import cuisineGenreMap from "./cuisineGenreMap.js";
 import { MOCK_RECIPES } from "./mockRecipes.js";
 import chatIngredientsRouter from "./chat-ingredients.js";
+import aiFormatRecipe from "./routes/aiFormatRecipe.js";
 
 dotenv.config();
-
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/api/ai", aiFormatRecipe);
+
 
 app.get("/", (req, res) => res.send("FlavorMatch backend is running!"));
 app.get("/api/hello", (req, res) =>
