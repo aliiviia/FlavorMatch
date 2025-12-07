@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { IconChefHat, IconSparkles, IconMusic } from "@tabler/icons-react";
 import "../styles/Home.css";
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 export default function Home() {
   const [email, setEmail] = useState("");
   const [featuredRecipes, setFeaturedRecipes] = useState([]);
@@ -19,7 +21,7 @@ export default function Home() {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:5001/api/recipes");
+        const res = await fetch(`${API_URL}/api/recipes`);
         if (!res.ok) throw new Error("Failed to load recipes");
 
         const data = await res.json();
