@@ -305,8 +305,8 @@ export default function RecipeDetails() {
 
               {selectedTrack ? (
                 <>
-                  <p>{selectedTrack.name}</p>
-                  <p>{selectedTrack.artists.map((a) => a.name).join(", ")}</p>
+                  {/* <p>{selectedTrack.name}</p>
+                  <p>{selectedTrack.artists.map((a) => a.name).join(", ")}</p> */}
 
                   <iframe
                     title="track-embed"
