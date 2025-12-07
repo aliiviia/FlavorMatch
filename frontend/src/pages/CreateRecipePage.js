@@ -16,7 +16,9 @@ export default function CreateRecipePage() {
 
   // 🟢 Check Spotify auth
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // const [isAuthenticated, setIsAuthenticated] = useState(true);
+
+  const [aiOutput, setAiOutput] = useState("");
+  const [loadingAI, setLoadingAI] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("spotify_token");
@@ -37,6 +39,48 @@ export default function CreateRecipePage() {
 
     alert("Recipe created!");
   };
+
+  async function handleImproveWithAI() {
+    if (!ingredients.trim() && !instructions.trim()) {
+      alert("Please enter ingredients or instructions first!");
+      return;
+    }
+
+    setLoadingAI(true);
+    setAiOutput("");
+
+    try {
+      const res = await fetch(`${API_URL}/api/ai/format-recipe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          ingredients,
+          steps: instructions,
+        }),
+      });
+
+      const data = await res.json();
+      setAiOutput(data.formattedRecipe);
+    } catch (err) {
+      console.error("AI error:", err);
+      alert("AI could not process your recipe.");
+    }
+
+    setLoadingAI(false);
+  }
+
+  function applyAIToForm() {
+    if (!aiOutput) return;
+
+    const ingMatch = aiOutput.split("Ingredients")[1]?.split("Steps")[0];
+    const stepMatch = aiOutput.split("Steps")[1];
+
+    if (ingMatch) setIngredients(ingMatch.trim());
+    if (stepMatch) setInstructions(stepMatch.trim());
+  }
+
+  /* ------------------- AUTH GATE -------------------- */
 
   if (!isAuthenticated) {
     return (
@@ -137,6 +181,57 @@ export default function CreateRecipePage() {
               placeholder="https://example.com/image.jpg"
               className="create-input"
             />
+
+            {/* ⭐ AI BUTTON */}
+            <button
+              type="button"
+              onClick={handleImproveWithAI}
+              className="create-submit"
+              style={{
+                backgroundColor: "#4CAF50",
+                marginTop: "15px",
+                marginBottom: "10px"
+              }}
+            >
+              ✨ Improve with AI
+            </button>
+
+            {/* ⭐ AI LOADING */}
+            {loadingAI && (
+              <p style={{ marginTop: "10px", opacity: 0.8 }}>
+                AI is formatting your recipe...
+              </p>
+            )}
+
+            {/* ⭐ AI OUTPUT PREVIEW */}
+            {aiOutput && (
+              <div
+                style={{
+                  background: "#f9f9f9",
+                  borderRadius: "10px",
+                  padding: "15px",
+                  marginTop: "10px",
+                  whiteSpace: "pre-wrap",
+                  border: "1px solid #ddd"
+                }}
+              >
+                <h3 style={{ marginTop: "0" }}>✨ AI Improved Version</h3>
+                {aiOutput}
+
+                <button
+                  type="button"
+                  onClick={applyAIToForm}
+                  className="create-submit"
+                  style={{
+                    marginTop: "15px",
+                    background: "#333",
+                    padding: "10px"
+                  }}
+                >
+                  Apply to Form
+                </button>
+              </div>
+            )}
 
             <button type="submit" className="create-submit">
               Submit Recipe
