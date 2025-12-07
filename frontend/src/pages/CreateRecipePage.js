@@ -181,8 +181,6 @@ export default function CreateRecipePage() {
               placeholder="https://example.com/image.jpg"
               className="create-input"
             />
-
-            {/* ⭐ AI BUTTON */}
             <button
               type="button"
               onClick={handleImproveWithAI}
