@@ -302,10 +302,15 @@ app.get("/api/recipes", async (req, res) => {
 app.get("/api/recipeInfo", async (req, res) => {
   const { id } = req.query;
 
+  // --- MOCK RECIPE CHECK (unchanged) ---
   const mockRecipe = MOCK_RECIPES.find((r) => String(r.id) === String(id));
 
   if (mockRecipe) {
-    return res.json(applyDefaults(mockRecipe));
+    return res.json({
+      ...applyDefaults(mockRecipe),
+      steps: mockRecipe.steps || [],
+      notes: mockRecipe.summary || ""
+    });
   }
 
   if (!spoonacularEnabled) {
@@ -321,37 +326,82 @@ app.get("/api/recipeInfo", async (req, res) => {
 
     const recipe = await apiRes.json();
 
-    return res.json(applyDefaults({
-      id: recipe.id,
-      title: recipe.title,
-      image: recipe.image,
-      summary: recipe.summary,
-      extendedIngredients: recipe.extendedIngredients.map((i) => i.original),
-      instructions: recipe.instructions,
-      cuisine:
-        recipe.cuisines?.[0]?.toLowerCase() ||
-        "american",
-      readyInMinutes: recipe.readyInMinutes,
-      servings: recipe.servings
-    }));
+    const structuredSteps =
+      recipe.analyzedInstructions?.[0]?.steps?.map((s) => ({
+        number: s.number,
+        step: s.step
+      })) || [];
+
+    const notes = recipe.summary || "";
+
+    return res.json(
+      applyDefaults({
+        id: recipe.id,
+        title: recipe.title,
+        image: recipe.image,
+        summary: recipe.summary,
+        extendedIngredients: recipe.extendedIngredients?.map((i) => i.original) || [],
+        instructions: recipe.instructions,   
+        steps: structuredSteps,              
+        notes: notes,                        
+        cuisine: recipe.cuisines?.[0]?.toLowerCase() || "american",
+        readyInMinutes: recipe.readyInMinutes,
+        servings: recipe.servings
+      })
+    );
 
   } catch (err) {
+    console.error("RecipeInfo fetch error:", err);
     disableSpoonacular();
     return res.json(null);
   }
 });
 
-app.get("/api/autocomplete", (req, res) => {
+
+app.get("/api/autocomplete", async (req, res) => {
   const query = req.query.query?.toLowerCase();
 
   if (!query) return res.json([]);
 
-  const filtered = MOCK_RECIPES.filter((r) =>
-    r.title.toLowerCase().startsWith(query)
-  ).slice(0, 8);
+  if (!spoonacularEnabled) {
+    const filtered = MOCK_RECIPES.filter(r =>
+      r.title.toLowerCase().startsWith(query)
+    ).slice(0, 8);
 
-  res.json(filtered.map(applyDefaults));
+    return res.json(filtered.map(applyDefaults));
+  }
+
+  try {
+    const apiRes = await fetch(
+      `https://api.spoonacular.com/recipes/complexSearch?query=${encodeURIComponent(query)}&number=8&apiKey=${process.env.SPOONACULAR_KEY}`
+    );
+
+    if (!apiRes.ok) throw new Error("Spoonacular autocomplete failed");
+
+    const data = await apiRes.json();
+
+    // Format results to match your frontend structure
+    const formatted = data.results.map(r => ({
+      id: r.id,
+      title: r.title,
+      image: r.image || `https://img.spoonacular.com/recipes/${r.id}-314x231.jpg`,
+      readyInMinutes: r.readyInMinutes || 30,
+      servings: r.servings || 2
+    }));
+
+    return res.json(formatted);
+
+  } catch (err) {
+    disableSpoonacular();
+
+    const filtered = MOCK_RECIPES.filter(r =>
+      r.title.toLowerCase().startsWith(query)
+    ).slice(0, 8);
+
+    return res.json(filtered.map(applyDefaults));
+  }
 });
+
 
 
 // app.post("/api/customRecipe", async (req, res) => {

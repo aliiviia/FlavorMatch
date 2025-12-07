@@ -95,6 +95,9 @@ export default function RecipeDetails() {
         recipe.instructions ||= "No instructions available.";
         recipe.extendedIngredients ||= [];
         recipe.cuisine ||= "american";
+        recipe.steps ||= [];
+        recipe.notes ||= "";
+
 
         setRecipeInfo(recipe);
 
@@ -267,8 +270,28 @@ export default function RecipeDetails() {
 
             <article className="recipe-card">
               <h2>Instructions</h2>
-              <p>{recipeInfo.instructions}</p>
+
+              {recipeInfo.steps && recipeInfo.steps.length > 0 ? (
+                <ol className="instructions-list">
+                  {recipeInfo.steps.map((s) => (
+                    <li key={s.number}>{s.step}</li>
+                  ))}
+                </ol>
+              ) : (
+                <div dangerouslySetInnerHTML={{ __html: recipeInfo.instructions }} />
+              )}
             </article>
+            {recipeInfo.notes && (
+              <article className="recipe-card">
+                <h2>Notes</h2>
+                <div
+                  className="recipe-notes"
+                  dangerouslySetInnerHTML={{ __html: recipeInfo.notes }}
+                />
+              </article>
+            )}
+
+
           </div>
 
           <aside className="recipe-side-column">
