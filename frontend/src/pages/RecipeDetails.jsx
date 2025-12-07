@@ -274,7 +274,10 @@ export default function RecipeDetails() {
               {recipeInfo.steps && recipeInfo.steps.length > 0 ? (
                 <ol className="instructions-list">
                   {recipeInfo.steps.map((s) => (
-                    <li key={s.number}>{s.step}</li>
+                    <li key={s.number}>{s.step}
+                    <div className="step-number">{s.number}</div>
+                    <div className="step-text">{s.step}</div>
+                    </li>
                   ))}
                 </ol>
               ) : (
