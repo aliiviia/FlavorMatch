@@ -14,7 +14,6 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/api", chatIngredientsRouter);
 
 app.get("/", (req, res) => res.send("FlavorMatch backend is running!"));
 app.get("/api/hello", (req, res) =>
@@ -176,7 +175,7 @@ app.post("/api/createPlaylist", async (req, res) => {
         })
       }
     );
-    // debugging playlist creation
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Playlist creation failed:", errorText);
@@ -197,7 +196,6 @@ app.post("/api/createPlaylist", async (req, res) => {
     res.status(500).json({ error: "Failed to create playlist" });
   }
 });
-
 
 /* ------------------------------------------------------
    SPOTIFY — ADD TRACKS
@@ -298,11 +296,9 @@ app.get("/api/recipes", async (req, res) => {
   }
 });
 
-
 app.get("/api/recipeInfo", async (req, res) => {
   const { id } = req.query;
 
-  // --- MOCK RECIPE CHECK (unchanged) ---
   const mockRecipe = MOCK_RECIPES.find((r) => String(r.id) === String(id));
 
   if (mockRecipe) {
@@ -341,9 +337,9 @@ app.get("/api/recipeInfo", async (req, res) => {
         image: recipe.image,
         summary: recipe.summary,
         extendedIngredients: recipe.extendedIngredients?.map((i) => i.original) || [],
-        instructions: recipe.instructions,   
-        steps: structuredSteps,              
-        notes: notes,                        
+        instructions: recipe.instructions,
+        steps: structuredSteps,
+        notes: notes,
         cuisine: recipe.cuisines?.[0]?.toLowerCase() || "american",
         readyInMinutes: recipe.readyInMinutes,
         servings: recipe.servings
@@ -356,7 +352,6 @@ app.get("/api/recipeInfo", async (req, res) => {
     return res.json(null);
   }
 });
-
 
 app.get("/api/autocomplete", async (req, res) => {
   const query = req.query.query?.toLowerCase();
@@ -380,7 +375,6 @@ app.get("/api/autocomplete", async (req, res) => {
 
     const data = await apiRes.json();
 
-    // Format results to match your frontend structure
     const formatted = data.results.map(r => ({
       id: r.id,
       title: r.title,
@@ -402,58 +396,11 @@ app.get("/api/autocomplete", async (req, res) => {
   }
 });
 
-
-
-// app.post("/api/customRecipe", async (req, res) => {
-//   try {
-//     const {
-//       title,
-//       description,
-//       instructions,
-//       ingredients,
-//       image,
-//       cuisine
-//     } = req.body;
-
-//     const result = await pool.query(
-//       `INSERT INTO recipes 
-//         (recipe_name, description, instructions, ingredients, image, source, cuisine)
-//        VALUES ($1, $2, $3, $4, $5, 'custom', $6)
-//        RETURNING *`,
-//       [
-//         title,
-//         description,
-//         instructions,
-//         JSON.stringify(ingredients),
-//         image,
-//         cuisine
-//       ]
-//     );
-
-//     res.json({ success: true, recipe: result.rows[0] });
-//   } catch (err) {
-//     console.error("❌ Error saving recipe:", err);
-//     res.status(500).json({ error: "Failed to save recipe" });
-//   }
-// });
-// console.log("Custom Recipe route loaded");
-
 /* ------------------------------------------------------
-   CUSTOM RECIPES — LOAD FROM DATABASE
+   🟢 MOUNT CHAT INGREDIENTS ROUTER (LAST)
+   — prevents it from overriding /api/recipes
 ------------------------------------------------------ */
-// app.get("/api/customRecipes", async (req, res) => {
-//   try {
-//     const result = await pool.query(
-//       "SELECT * FROM recipes WHERE source = 'custom' ORDER BY recipe_id DESC"
-//     );
-
-//     return res.json(result.rows);
-//   } catch (err) {
-//     console.error("❌ Error loading recipes:", err);
-//     return res.status(500).json({ error: "Failed to load recipes" });
-//   }
-// });
-
+app.use("/api", chatIngredientsRouter);
 
 /* ------------------------------------------------------
    START SERVER
