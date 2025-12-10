@@ -40,7 +40,7 @@ export default function CustomRecipePage() {
 
   const deleteRecipe = (id) => {
     const next = recipes.filter((r) => r.id !== id);
-    saveRecipes(next); // updates state + localStorage
+    saveRecipes(next);
   };
 
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function CustomRecipePage() {
     setIngredients("");
     setInstructions("");
     setImageUrl("");
-    setAiOutput(null); 
+    setAiOutput(null);
 
     setShowCreate(false);
     setShowCollection(true);
@@ -138,8 +138,10 @@ export default function CustomRecipePage() {
   function applyAIToForm() {
     if (!aiOutput) return;
     if (aiOutput.title) setName(aiOutput.title);
-    if (aiOutput.ingredients) setIngredients(aiOutput.ingredients.join("\n"));
-    if (aiOutput.instructions) setInstructions(aiOutput.instructions.join("\n"));
+    if (aiOutput.ingredients)
+      setIngredients(aiOutput.ingredients.join("\n"));
+    if (aiOutput.instructions)
+      setInstructions(aiOutput.instructions.join("\n"));
   }
 
   const recipeCount = recipes.length;
@@ -274,14 +276,17 @@ export default function CustomRecipePage() {
             <header className="cr-modal-header">
               <div>
                 <h2 className="cr-modal-title">Create New Recipe</h2>
-                <p className="cr-modal-subtitle">Fill in the details to save your masterpiece.</p>
+                <p className="cr-modal-subtitle">
+                  Fill in the details to save your masterpiece.
+                </p>
               </div>
-              <button className="cr-modal-close" onClick={() => setShowCreate(false)}>×</button>
+              <button className="cr-modal-close" onClick={() => setShowCreate(false)}>
+                ×
+              </button>
             </header>
 
             <form className="cr-modal-body" onSubmit={handleCreateSubmit}>
               <div className="cr-form-grid">
-
                 <div className="cr-field full">
                   <label className="cr-label">Recipe Name</label>
                   <input
@@ -352,7 +357,9 @@ export default function CustomRecipePage() {
               </button>
 
               {loadingAI && (
-                <p style={{ marginTop: "8px", opacity: 0.7 }}>AI is improving your recipe…</p>
+                <p style={{ marginTop: "8px", opacity: 0.7 }}>
+                  AI is improving your recipe…
+                </p>
               )}
 
               {aiOutput && (
@@ -368,7 +375,8 @@ export default function CustomRecipePage() {
                 >
                   <h3>✨ AI Improved Recipe</h3>
 
-                  <strong>Title:</strong> {aiOutput.title || "(unchanged)"} <br /><br />
+                  <strong>Title:</strong> {aiOutput.title || "(unchanged)"} <br />
+                  <br />
 
                   <strong>Ingredients:</strong>
                   <ul>
@@ -396,7 +404,11 @@ export default function CustomRecipePage() {
               )}
 
               <div className="cr-modal-actions">
-                <button type="button" className="cr-btn-secondary" onClick={() => setShowCreate(false)}>
+                <button
+                  type="button"
+                  className="cr-btn-secondary"
+                  onClick={() => setShowCreate(false)}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="cr-btn-primary">
@@ -408,76 +420,144 @@ export default function CustomRecipePage() {
         </div>
       )}
 
-
-{showCollection && (
-  <div className="cr-modal-backdrop" onClick={() => setShowCollection(false)}>
-    <div
-      className="cr-modal cr-modal-collection"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <header className="cr-modal-header">
-        <div>
-          <h2 className="cr-modal-title">My Collection</h2>
-          <p className="cr-modal-subtitle">All of your saved culinary creations.</p>
-        </div>
-        <button className="cr-modal-close" onClick={() => setShowCollection(false)}>
-          ×
-        </button>
-      </header>
-
-      <div className="cr-collection-list">
-        {recipes.length === 0 ? (
-          <p className="cr-empty-message">You haven't created any recipes yet.</p>
-        ) : (
-          recipes.map((r) => (
-            <div key={r.id} className="cr-collection-item">
-              <img
-                src={r.imageUrl || heroImg}
-                alt={r.name}
-                className="cr-collection-thumb"
-              />
-
-              <div className="cr-collection-info">
-                <h3 className="cr-collection-name">{r.name}</h3>
-                {r.cuisine && <p className="cr-collection-cuisine">{r.cuisine}</p>}
-                {r.prepTime && <p className="cr-collection-prep">{r.prepTime} min</p>}
+      {/* ========== COLLECTION MODAL ========== */}
+      {showCollection && (
+        <div className="cr-modal-backdrop" onClick={() => setShowCollection(false)}>
+          <div
+            className="cr-modal cr-modal-collection"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="cr-modal-header">
+              <div>
+                <h2 className="cr-modal-title">My Collection</h2>
+                <p className="cr-modal-subtitle">All of your saved culinary creations.</p>
               </div>
+              <button
+                className="cr-modal-close"
+                onClick={() => setShowCollection(false)}
+              >
+                ×
+              </button>
+            </header>
 
-              <div className="cr-collection-actions">
-                <button
-                  className="cr-view-btn"
-                  onClick={() => {
-                    setSelectedRecipe(r);
-                    setShowRecipe(true);
-                  }}
-                >
-                  View
-                </button>
+            <div className="cr-collection-list">
+              {recipes.length === 0 ? (
+                <p className="cr-empty-message">You haven't created any recipes yet.</p>
+              ) : (
+                recipes.map((r) => (
+                  <div key={r.id} className="cr-collection-item">
+                    <img
+                      src={r.imageUrl || heroImg}
+                      alt={r.name}
+                      className="cr-collection-thumb"
+                    />
 
-                <button className="cr-delete-btn" onClick={() => deleteRecipe(r.id)}>
-                  Delete
-                </button>
-              </div>
+                    <div className="cr-collection-info">
+                      <h3 className="cr-collection-name">{r.name}</h3>
+                      {r.cuisine && (
+                        <p className="cr-collection-cuisine">{r.cuisine}</p>
+                      )}
+                      {r.prepTime && (
+                        <p className="cr-collection-prep">{r.prepTime} min</p>
+                      )}
+                    </div>
+
+                    <div className="cr-collection-actions">
+                      <button
+                        className="cr-view-btn"
+                        onClick={() => {
+                          setSelectedRecipe(r);
+                          setShowRecipe(true);
+                        }}
+                      >
+                        View
+                      </button>
+
+                      <button
+                        className="cr-delete-btn"
+                        onClick={() => deleteRecipe(r.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-          ))
-        )}
-      </div>
-    </div>
-  </div>
-)}
-
-
-      {showSpotifyPrompt && (
-        <div className="cr-modal-backdrop" onClick={() => setShowSpotifyPrompt(false)}>
-          <div className="cr-modal cr-modal-small" onClick={(e) => e.stopPropagation()}>
-            {/* original content */}
           </div>
         </div>
       )}
 
-      {showRecipe && selectedRecipe && (
-        <div className="cr-modal-backdrop" onClick={() => setShowRecipe(false)}>
-          <div className="cr-modal" onClick={(e) => e.stopPropagation()}>
+    {showRecipe && selectedRecipe && (
+      <div className="cr-modal-backdrop" onClick={() => setShowRecipe(false)}>
+        <div className="recipe-page recipe-page-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="recipe-page-inner">
+
+            <button className="back-btn" onClick={() => setShowRecipe(false)}>
+              ← Back
+            </button>
+
+            <header className="recipe-header">
+              <h1 className="recipe-title-main">{selectedRecipe.name}</h1>
+
+              <div className="recipe-header-meta-row">
+                {selectedRecipe.prepTime && (
+                  <span className="recipe-meta-pill">⏱ {selectedRecipe.prepTime} min</span>
+                )}
+              </div>
+
+              {selectedRecipe.cuisine && (
+                <p className="recipe-description">{selectedRecipe.cuisine}</p>
+              )}
+            </header>
+
+            <section className="recipe-layout">
+              <div className="recipe-main-column">
+
+                <article className="recipe-card recipe-image-card">
+                  <img
+                    src={selectedRecipe.imageUrl || heroImg}
+                    alt={selectedRecipe.name}
+                    className="recipe-main-img"
+                  />
+                </article>
+
+                <article className="recipe-card">
+                  <h2>Ingredients</h2>
+                  <ul>
+                    {selectedRecipe.ingredients
+                      ?.split("\n")
+                      .map((line, idx) => <li key={idx}>{line.trim()}</li>)}
+                  </ul>
+                </article>
+
+                <article className="recipe-card">
+                  <h2>Instructions</h2>
+                  <ol className="instructions-list">
+                    {selectedRecipe.instructions
+                      ?.split("\n")
+                      .map((line, idx) => (
+                        <li key={idx}>
+                          <div className="step-number">{idx + 1}</div>
+                          <div className="step-text">{line.trim()}</div>
+                        </li>
+                      ))}
+                  </ol>
+                </article>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    )}
+
+      {showSpotifyPrompt && (
+        <div
+          className="cr-modal-backdrop"
+          onClick={() => setShowSpotifyPrompt(false)}
+        >
+          <div className="cr-modal cr-modal-small" onClick={(e) => e.stopPropagation()}>
             {/* original content */}
           </div>
         </div>
