@@ -409,13 +409,63 @@ export default function CustomRecipePage() {
       )}
 
 
-      {showCollection && (
-        <div className="cr-modal-backdrop" onClick={() => setShowCollection(false)}>
-          <div className="cr-modal cr-modal-collection" onClick={(e) => e.stopPropagation()}>
-            {/* original content */}
-          </div>
+{showCollection && (
+  <div className="cr-modal-backdrop" onClick={() => setShowCollection(false)}>
+    <div
+      className="cr-modal cr-modal-collection"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <header className="cr-modal-header">
+        <div>
+          <h2 className="cr-modal-title">My Collection</h2>
+          <p className="cr-modal-subtitle">All of your saved culinary creations.</p>
         </div>
-      )}
+        <button className="cr-modal-close" onClick={() => setShowCollection(false)}>
+          ×
+        </button>
+      </header>
+
+      <div className="cr-collection-list">
+        {recipes.length === 0 ? (
+          <p className="cr-empty-message">You haven't created any recipes yet.</p>
+        ) : (
+          recipes.map((r) => (
+            <div key={r.id} className="cr-collection-item">
+              <img
+                src={r.imageUrl || heroImg}
+                alt={r.name}
+                className="cr-collection-thumb"
+              />
+
+              <div className="cr-collection-info">
+                <h3 className="cr-collection-name">{r.name}</h3>
+                {r.cuisine && <p className="cr-collection-cuisine">{r.cuisine}</p>}
+                {r.prepTime && <p className="cr-collection-prep">{r.prepTime} min</p>}
+              </div>
+
+              <div className="cr-collection-actions">
+                <button
+                  className="cr-view-btn"
+                  onClick={() => {
+                    setSelectedRecipe(r);
+                    setShowRecipe(true);
+                  }}
+                >
+                  View
+                </button>
+
+                <button className="cr-delete-btn" onClick={() => deleteRecipe(r.id)}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
 
       {showSpotifyPrompt && (
         <div className="cr-modal-backdrop" onClick={() => setShowSpotifyPrompt(false)}>

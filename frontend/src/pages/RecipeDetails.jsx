@@ -101,6 +101,10 @@ export default function RecipeDetails() {
 
 
         setRecipeInfo(recipe);
+        
+        console.log("🔥 LOADED RECIPE:", recipe);
+        console.log("🔥 RECIPE CUISINE:", recipe.cuisine);
+
 
         if (!spotifyToken) return;
 
