@@ -55,13 +55,19 @@ app.get("/login", (req, res) => {
     scope: [
       "user-read-email",
       "user-read-private",
+      "playlist-read-private",
       "playlist-modify-public",
-      "playlist-modify-private"
-    ].join(" ")
+      "playlist-modify-private",
+      "user-top-read",
+      "user-library-read",
+      "user-read-recently-played"
+    ].join(" "),
+    show_dialog: "true"   // 🔥 critical
   });
 
   res.redirect(`${authorizeUrl}?${params.toString()}`);
 });
+
 
 /* ------------------------------------------------------
    SPOTIFY — CALLBACK (TOKEN EXCHANGE)
@@ -83,13 +89,18 @@ app.get("/callback", async (req, res) => {
     );
 
     const access_token = tokenResponse.data.access_token;
-    res.redirect(`${process.env.FRONTEND_URL}/?access_token=${access_token}`);
+    const refresh_token = tokenResponse.data.refresh_token;
+
+    res.redirect(
+      `${process.env.FRONTEND_URL}/callback?access_token=${access_token}&refresh_token=${refresh_token}`
+    );
 
   } catch (err) {
     console.error("Error exchanging code:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to authenticate with Spotify" });
   }
 });
+
 
 /* ------------------------------------------------------
    SPOTIFY — FETCH USER PROFILE
@@ -397,6 +408,36 @@ app.get("/api/autocomplete", async (req, res) => {
     return res.json(filtered.map(applyDefaults));
   }
 });
+
+app.post("/refresh", async (req, res) => {
+  const { refresh_token } = req.body;
+
+  try {
+    const tokenResponse = await axios.post(
+      "https://accounts.spotify.com/api/token",
+      new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refresh_token,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET
+      }),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    const access_token = tokenResponse.data.access_token;
+    const new_refresh_token = tokenResponse.data.refresh_token || refresh_token;
+
+    res.json({
+      access_token,
+      refresh_token: new_refresh_token
+    });
+
+  } catch (err) {
+    console.error("Refresh token error:", err.response?.data || err.message);
+    res.status(400).json({ error: "Failed to refresh token" });
+  }
+});
+
 
 /* ------------------------------------------------------
    🟢 MOUNT CHAT INGREDIENTS ROUTER (LAST)

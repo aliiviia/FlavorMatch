@@ -34,6 +34,7 @@ export default function App() {
           <Route path="/custom" element={<CustomRecipePage />} />
           <Route path="/create" element={<CreateRecipePage />} />
           <Route path="/explore" element={<ExploreCustomRecipesPage />} />
+          <Route path="/callback" element={<Callback />} />
         </Route>
       </Routes>
 

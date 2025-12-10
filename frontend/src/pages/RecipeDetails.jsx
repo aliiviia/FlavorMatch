@@ -1,6 +1,7 @@
 import { IconHeadphones, IconMusic, IconUsers } from "@tabler/icons-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { spotifyFetch } from "../utils/spotifyAuth";
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -103,14 +104,12 @@ export default function RecipeDetails() {
 
         if (!spotifyToken) return;
 
-        const recRes = await fetch(`${API_URL}/api/recommendations`, {
+        const recRes = await spotifyFetch(`${API_URL}/api/recommendations`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${spotifyToken}`,
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cuisine: recipe.cuisine }),
         });
+
 
         const recData = await recRes.json();
 
@@ -150,25 +149,20 @@ export default function RecipeDetails() {
 
     try {
       console.log("Fetching Spotify user...");
-
-      const userRes = await fetch(`${API_URL}/me`, {
-        headers: { Authorization: `Bearer ${spotifyToken}` },
-      });
+      const userRes = await spotifyFetch(`${API_URL}/me`);
       const user = await userRes.json();
       console.log("User:", user);
 
       console.log("Creating playlist...");
-      const playlistRes = await fetch(`${API_URL}/api/createPlaylist`, {
+      const playlistRes = await spotifyFetch(`${API_URL}/api/createPlaylist`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${spotifyToken}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
           recipeTitle: recipeInfo.title,
         }),
       });
+
 
       const playlist = await playlistRes.json();
       console.log("Playlist response:", playlist);
@@ -183,15 +177,12 @@ export default function RecipeDetails() {
 
       console.log("Adding tracks...");
       const uris = recommendedTracks.map((t) => t.uri).filter(Boolean);
-
-      const addTracksRes = await fetch(`${API_URL}/api/addTracks`, {
+      const addTracksRes = await spotifyFetch(`${API_URL}/api/addTracks`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${spotifyToken}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ playlistId: playlistID, uris }),
       });
+
       console.log("Add tracks result:", await addTracksRes.json());
 
       console.log("Waiting for Spotify embed metadata...");
