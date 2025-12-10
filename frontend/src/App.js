@@ -11,6 +11,8 @@ import ExploreCustomRecipesPage from "./pages/ExploreCustomRecipePage.js";
 import FloatingChatBot from "./components/FloatingChatBot";
 import "./styles/Global.css";
 import "./styles/Layout.css";
+import Callback from "./pages/Callback";
+
 
 export default function App() {
   useEffect(() => {
